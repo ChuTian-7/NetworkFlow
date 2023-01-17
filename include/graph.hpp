@@ -26,11 +26,11 @@ class Edge{
 
 class Graph{
   private:
-    int n_;
+    int n_,m_;
     std::deque<Node> node_;
     std::deque<Edge> edge_;
     friend class BruteForce;
   public:
     Graph(){};
-    Graph(int n,std::deque<Node>node,std::deque<Edge> edge){};
+    Graph(int n,int m,std::deque<Node>node,std::deque<Edge> edge){};
 };
