@@ -1,14 +1,18 @@
 #include "brute_force.hpp"
+#include <cstdio>
 
 BruteForce::BruteForce(Graph G):G_(G){};
 
-int BruteForce::Solve(){
-  int length=G_.n_+G_.m_;
+void BruteForce::ChangeGraph(Graph G){
+  G_=G;
+};
+
+double BruteForce::Solve(){
   std::vector<int> value(G_.n_);
-  int ans=__INT_MAX__;
-  std::function<void(int,int)> dfs = [this,length,&value,&ans,&dfs](int p,int sum){
-    if(p==length){
-      ans=std::max(ans,sum);
+  double ans=1e9;
+  std::function<void(int,int)> dfs = [this,&value,&ans,&dfs](int p,double sum){
+    if(p==G_.n_+G_.m_){
+      ans=std::min(ans,sum);
       return;
     }
     if(p<G_.n_){
@@ -27,5 +31,6 @@ int BruteForce::Solve(){
       }
     }
   };
+  dfs(0,0);
   return ans;
 }

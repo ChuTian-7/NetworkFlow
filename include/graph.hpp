@@ -10,7 +10,7 @@ class Node{
     friend class BruteForce;
   public:
     Node(){};
-    Node(int l,int r,std::function<double(int)> F){};
+    Node(int l,int r,std::function<double(int)> F);
 };
 
 class Edge{
@@ -21,7 +21,7 @@ class Edge{
     friend class BruteForce;
   public:
     Edge(){};
-    Edge(int l,int r,std::function<double(int)> F,int u,int v){};
+    Edge(int l,int r,std::function<double(int)> F,int u,int v);
 };
 
 class Graph{
@@ -32,5 +32,5 @@ class Graph{
     friend class BruteForce;
   public:
     Graph(){};
-    Graph(int n,int m,std::deque<Node>node,std::deque<Edge> edge){};
+    Graph(int n,int m,std::deque<Node>node,std::deque<Edge> edge);
 };

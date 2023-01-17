@@ -7,6 +7,8 @@ class  BruteForce
   private:
     Graph G_;
   public:
-    BruteForce(Graph G){};
-    int Solve(){};
+    BruteForce(){};
+    BruteForce(Graph G);
+    void ChangeGraph(Graph G);
+    double Solve();
 };
