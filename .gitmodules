@@ -4,3 +4,6 @@
 [submodule "testlib"]
 	path = testlib
 	url = git@github.com:MikeMirzayanov/testlib.git
+[submodule "AHO-MS2003"]
+	path = AHO-MS2003
+	url = git@github.com:EasternLi/AHO-MS2003.git

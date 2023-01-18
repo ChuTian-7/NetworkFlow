@@ -4,6 +4,7 @@
 #include "testlib.h"
 #include "gen.h"
 #include "functional"
+#include "ProblemSolver.hpp"
 #include <cstdio>
 #include <cmath>
 
@@ -83,7 +84,7 @@ std::function<double(int)> RandF(){
 }
 
 void PrintFunction(int x){
-  printf(" (%d) * x * x + ( %d ) * x + ( %d )\n",fun[x].a,fun[x].b,fun[x].c);
+  printf(" ( %d ) * x * x + ( %d ) * x + ( %d )\n",fun[x].a,fun[x].b,fun[x].c);
 }
 
 Graph TinyGen(int n,int ml,int x=0){
@@ -112,8 +113,8 @@ Graph TinyGen(int n,int ml,int x=0){
   }
   std::map<std::pair<int,int>,int> mp;
   for(int i=0;i<m;i++){   
-    nxt.edge_[i].l_=rnd.next(-5,10);
-    nxt.edge_[i].r_=rnd.next(-5,10);
+    nxt.edge_[i].l_=rnd.next(-2,10);
+    nxt.edge_[i].r_=rnd.next(-2,10);
     if(nxt.edge_[i].l_>nxt.edge_[i].r_){
       std::swap(nxt.edge_[i].l_,nxt.edge_[i].r_);
     }
@@ -131,17 +132,34 @@ Graph TinyGen(int n,int ml,int x=0){
   return nxt;
 }
 
-int main(){
+double SolveByBF(Graph g){
   BruteForce bf;
+  bf.ChangeGraph(g);
+  double answer=bf.Solve();
+  if(answer==1e9){
+    answer=nan("");
+  }
+  return answer;
+}
+
+double SolveByCS(Graph g){
+  std::vector<μLimit> μs;
+	std::vector<ωLimit> ωs;
+  for(auto x:g.node_){
+    μs.push_back({x.l_,x.r_,x.F_});
+  }
+  for(auto x:g.edge_){
+    ωs.push_back({{x.l_,x.r_,x.F_},(size_t)x.u_,(size_t)x.v_});
+  }
+  ProblemSolver p(g.n_,μs,ωs);
+  return p.solve();
+}
+
+int main(){
   int cas=0;
   Graph g;
   for(int i=1;i<=3;i++){
-    g=TinyGen(4,8,i);
-    bf.ChangeGraph(g);
-    double answer=bf.Solve();
-    if(answer==1e9){
-      answer=nan("");
-    }
+    g=TinyGen(4,8,i);    
     printf("n = %d, m = %d\n",g.n_,g.m_);
     for(int i=1;i<=g.n_;i++){
       printf("node %d : l = %d , u = %d , funtion = ",i,g.node_[i].l_,g.node_[i].r_);
@@ -151,7 +169,9 @@ int main(){
       printf("from = %d, to = %d , l = %d , u = %d , function = ",g.edge_[i].u_,g.edge_[i].v_,g.edge_[i].l_,g.edge_[i].r_);
       PrintFunction(g.n_+i);
     }
-    printf("Test %d: answer = %lf\n",cas,answer);
+    printf("Test %d:\n",i);
+    printf("answer = %lf\n",SolveByBF(g));
+    printf("result = %lf\n",SolveByCS(g));
   }
   return 0;
 }
