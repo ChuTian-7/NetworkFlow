@@ -69,14 +69,25 @@ std::deque<Graph> G={
   )
 };
 
+struct Fun{
+  int a,b,c;
+};
+std::vector<Fun> fun;
+
 std::function<double(int)> RandF(){
   int a=rnd.next(0,10);
   int b=rnd.next(-10,10);
   int c=rnd.next(-10,10);
+  fun.push_back({a,b,c});
   return [a,b,c](int x){return a*x*x+b*x+c;};
 }
 
-void TinyGen(int n,int ml,int x=0){
+void PrintFunction(int x){
+  printf(" (%d) * x * x + ( %d ) * x + ( %d )\n",fun[x].a,fun[x].b,fun[x].c);
+}
+
+Graph TinyGen(int n,int ml,int x=0){
+  fun.clear();
   int m=rnd.next(n-1,ml);
   GraphGenerator::Graph graph;
   rnd.setSeed(x);
@@ -99,40 +110,46 @@ void TinyGen(int n,int ml,int x=0){
     }
     nxt.node_[i].F_=RandF();
   }
-  for(int i=0;i<m;i++){
-    std::map<std::pair<int,int>,std::pair<int,int>> mp;
-    nxt.edge_[i].l_=rnd.next(-2,8);
-    nxt.edge_[i].r_=rnd.next(-2,8);
+  std::map<std::pair<int,int>,int> mp;
+  for(int i=0;i<m;i++){   
+    nxt.edge_[i].l_=rnd.next(-5,10);
+    nxt.edge_[i].r_=rnd.next(-5,10);
     if(nxt.edge_[i].l_>nxt.edge_[i].r_){
       std::swap(nxt.edge_[i].l_,nxt.edge_[i].r_);
     }
     nxt.edge_[i].F_=RandF();
-    if(mp.count(e[i])==0){
-      e[i]=mp[e[i]];
+    if(mp[e[i]]){
+      e[i]=e[mp[e[i]]-1];
     }
     else{
-      mp[e[i]]=e[i];
-      mp[std::make_pair(e[i].second,e[i].first)]=e[i];
+      mp[e[i]]=i+1;
+      mp[std::make_pair(e[i].second,e[i].first)]=i+1;
     }
-    nxt.edge_[i].u_=e[i].first;
-    nxt.edge_[i].v_=e[i].first;
+    nxt.edge_[i].u_=e[i].first+1;
+    nxt.edge_[i].v_=e[i].second+1;
   }
-  G.push_back(nxt);
-  return;
+  return nxt;
 }
 
 int main(){
   BruteForce bf;
   int cas=0;
+  Graph g;
   for(int i=1;i<=3;i++){
-    TinyGen(4,8,i);
-  }
-  for(auto g:G){
-    cas++;
+    g=TinyGen(4,8,i);
     bf.ChangeGraph(g);
     double answer=bf.Solve();
     if(answer==1e9){
       answer=nan("");
+    }
+    printf("n = %d, m = %d\n",g.n_,g.m_);
+    for(int i=1;i<=g.n_;i++){
+      printf("node %d : l = %d , u = %d , funtion = ",i,g.node_[i].l_,g.node_[i].r_);
+      PrintFunction(i-1);
+    }
+    for(int i=0;i<g.m_;i++){
+      printf("from = %d, to = %d , l = %d , u = %d , function = ",g.edge_[i].u_,g.edge_[i].v_,g.edge_[i].l_,g.edge_[i].r_);
+      PrintFunction(g.n_+i);
     }
     printf("Test %d: answer = %lf\n",cas,answer);
   }
