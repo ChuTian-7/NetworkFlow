@@ -94,8 +94,8 @@ Graph TinyGen(int n,int ml,int x=0){
   rnd.setSeed(x);
   graph.SetNode(n);
   graph.SetSide(m);
-  graph.SetConnect(true);
-  graph.SetMultiplyEdge(true);
+  graph.SetMultiplyEdge(false);
+  //graph.SetMultiplyEdge(true);
   graph.GenGraph();
   std::vector<std::pair<int,int>> e=graph.GetEdge();
   Graph nxt;
@@ -166,7 +166,7 @@ int main(){
       PrintFunction(i-1);
     }
     for(int i=0;i<g.m_;i++){
-      printf("from = %d, to = %d , l = %d , u = %d , function = ",g.edge_[i].u_,g.edge_[i].v_,g.edge_[i].l_,g.edge_[i].r_);
+      printf("edge %d : from = %d, to = %d , l = %d , u = %d , function = ",i+1,g.edge_[i].u_,g.edge_[i].v_,g.edge_[i].l_,g.edge_[i].r_);
       PrintFunction(g.n_+i);
     }
     printf("Test %d:\n",i);

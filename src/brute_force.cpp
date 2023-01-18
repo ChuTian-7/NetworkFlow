@@ -16,10 +16,11 @@ double BruteForce::Solve(){
         for(int i=0;i<G_.n_+G_.m_;i++){
           printf("%d ",value[i]);
           if(i<G_.n_){
-            printf(" %lf\n",G_.node_[i].F_(value[i]));
+            printf(" %lf\n",G_.node_[i+1].F_(value[i]));
           }
           else{
-            printf(" %lf\n",G_.edge_[i-G_.n_].F_(value[i]));
+            printf(" %lf ",G_.edge_[i-G_.n_].F_(value[i]));
+            printf("%d >= %d - %d = %d\n",value[i],value[G_.edge_[i-G_.n_].u_-1],value[G_.edge_[i-G_.n_].v_-1],value[G_.edge_[i-G_.n_].u_-1]-value[G_.edge_[i-G_.n_].v_-1]);
           }
         }
       }

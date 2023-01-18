@@ -225,6 +225,7 @@ class Graph {
 		}
 		bool JudgeMultiplyEdge(int u,int v) {
 			if(e[ {u,v}])	return true;
+			if(direction==0 && e[{v,u}])	return true;
 			return false;
 		}
 		void AddEdge(int u,int v) {
