@@ -4,9 +4,8 @@
 
 class  BruteForce
 {
-  private:
-    Graph G_;
   public:
+    Graph G_;
     BruteForce(){};
     BruteForce(Graph G);
     void ChangeGraph(Graph G);

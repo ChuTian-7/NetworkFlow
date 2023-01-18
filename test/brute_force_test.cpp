@@ -113,8 +113,8 @@ Graph TinyGen(int n,int ml,int x=0){
   }
   std::map<std::pair<int,int>,int> mp;
   for(int i=0;i<m;i++){   
-    nxt.edge_[i].l_=rnd.next(-2,10);
-    nxt.edge_[i].r_=rnd.next(-2,10);
+    nxt.edge_[i].l_=rnd.next(-3,3);
+    nxt.edge_[i].r_=rnd.next(-3,3);
     if(nxt.edge_[i].l_>nxt.edge_[i].r_){
       std::swap(nxt.edge_[i].l_,nxt.edge_[i].r_);
     }
@@ -168,7 +168,8 @@ int main(){
   int cas=0;
   Graph g;
   for(int i=1;i<=3;i++){
-    g=TinyGen(4,8,i); 
+    //g=TinyGen(4,8,i); 
+    g=TinyGen(3,3,i);
     printf("Test %d:\n",i);   
     printf("n = %d, m = %d\n",g.n_,g.m_);
     for(int i=1;i<=g.n_;i++){
