@@ -2,6 +2,7 @@
 #include "graph.hpp"
 #include "deque"
 #include <cstdio>
+#include <cmath>
 
 std::deque<Graph> G={
   Graph(1,0,
@@ -51,6 +52,17 @@ std::deque<Graph> G={
 		{
 			{-10, -7, [](int x) { return 2*x*x-3*x; }, 1, 2}
 		}
+  ),
+  Graph(
+    2,1,
+		{
+			{0,  0, [](int) { return 0; }},
+			{-4, 4, [](int x) { return x*x; }},
+			{-5, 3, [](int x) { return 3*x*x+4*x; }},
+		},
+		{
+			{-100, -90, [](int x) { return 2*x*x-3*x; }, 1, 2}
+		}
   )
 };
 
@@ -63,6 +75,9 @@ int main(){
     cas++;
     bf.ChangeGraph(g);
     double ans=bf.Solve();
+    if(ans==1e9){
+      ans=nan("");
+    }
     printf("Test %d: answer = %lf\n",cas,ans);
   }
   return 0;

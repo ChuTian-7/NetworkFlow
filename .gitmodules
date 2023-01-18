@@ -1,3 +1,6 @@
 [submodule "testa"]
 	path = testa
 	url = git@github.com:TimeExceed/testa.git
+[submodule "testlib"]
+	path = testlib
+	url = git@github.com:MikeMirzayanov/testlib.git
