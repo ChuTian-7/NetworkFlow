@@ -1,6 +1,7 @@
 #include"testlib.h"
 
-//树的基类
+namespace GraphGenerator{
+	//树的基类
 class Tree {
 	protected:
 		int node;//节点数
@@ -1149,3 +1150,4 @@ class Cactus:public Graph{
 			shuffle(edge.begin(),edge.end());
 		}
 };
+}
