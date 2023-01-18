@@ -10,5 +10,5 @@ class  BruteForce
     BruteForce(){};
     BruteForce(Graph G);
     void ChangeGraph(Graph G);
-    double Solve();
+    double Solve(std::vector<int> &v);
 };

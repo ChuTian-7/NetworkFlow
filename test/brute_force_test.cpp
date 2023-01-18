@@ -135,7 +135,16 @@ Graph TinyGen(int n,int ml,int x=0){
 double SolveByBF(Graph g){
   BruteForce bf;
   bf.ChangeGraph(g);
-  double answer=bf.Solve();
+  std::vector<int> value;
+  double answer=bf.Solve(value);
+  for(int i=0;i<g.n_+g.m_;i++){
+    if(i<g.n_){
+      printf("node %d : x = %d , function = %lf\n",i+1,value[i],g.node_[i+1].F_(value[i]));
+    }
+    else{
+      printf("edge %d : x = %d , function = %lf\n",i-g.n_+1,value[i],g.edge_[i-g.n_].F_(value[i]));
+    }
+  }
   if(answer==1e9){
     answer=nan("");
   }
@@ -159,7 +168,8 @@ int main(){
   int cas=0;
   Graph g;
   for(int i=1;i<=3;i++){
-    g=TinyGen(4,8,i);    
+    g=TinyGen(4,8,i); 
+    printf("Test %d:\n",i);   
     printf("n = %d, m = %d\n",g.n_,g.m_);
     for(int i=1;i<=g.n_;i++){
       printf("node %d : l = %d , u = %d , funtion = ",i,g.node_[i].l_,g.node_[i].r_);
@@ -169,7 +179,6 @@ int main(){
       printf("edge %d : from = %d, to = %d , l = %d , u = %d , function = ",i+1,g.edge_[i].u_,g.edge_[i].v_,g.edge_[i].l_,g.edge_[i].r_);
       PrintFunction(g.n_+i);
     }
-    printf("Test %d:\n",i);
     printf("answer = %lf\n",SolveByBF(g));
     printf("result = %lf\n",SolveByCS(g));
   }

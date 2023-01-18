@@ -7,24 +7,15 @@ void BruteForce::ChangeGraph(Graph G){
   G_=G;
 };
 
-double BruteForce::Solve(){
+double BruteForce::Solve(std::vector<int> & v){
   std::vector<int> value(G_.n_+G_.m_);
   double ans=1e9;
-  std::function<void(int,int)> dfs = [this,&value,&ans,&dfs](int p,double sum){
+  std::function<void(int,int)> dfs = [this,&value,&ans,&dfs,&v](int p,double sum){
     if(p==G_.n_+G_.m_){
-      if(sum==493){
-        for(int i=0;i<G_.n_+G_.m_;i++){
-          printf("%d ",value[i]);
-          if(i<G_.n_){
-            printf(" %lf\n",G_.node_[i+1].F_(value[i]));
-          }
-          else{
-            printf(" %lf ",G_.edge_[i-G_.n_].F_(value[i]));
-            printf("%d >= %d - %d = %d\n",value[i],value[G_.edge_[i-G_.n_].u_-1],value[G_.edge_[i-G_.n_].v_-1],value[G_.edge_[i-G_.n_].u_-1]-value[G_.edge_[i-G_.n_].v_-1]);
-          }
-        }
-      }
       ans=std::min(ans,sum);
+      if(ans==sum){
+        v=value;
+      }
       return;
     }
     if(p<G_.n_){
