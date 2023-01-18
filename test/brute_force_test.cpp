@@ -169,7 +169,7 @@ int main(){
   Graph g;
   for(int i=1;i<=3;i++){
     //g=TinyGen(4,8,i); 
-    g=TinyGen(3,3,i);
+    g=TinyGen(3,3,i+114514);
     printf("Test %d:\n",i);   
     printf("n = %d, m = %d\n",g.n_,g.m_);
     for(int i=1;i<=g.n_;i++){

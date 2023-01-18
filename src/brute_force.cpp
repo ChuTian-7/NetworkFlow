@@ -12,8 +12,8 @@ double BruteForce::Solve(std::vector<int> & v){
   double ans=1e9;
   std::function<void(int,int)> dfs = [this,&value,&ans,&dfs,&v](int p,double sum){
     if(p==G_.n_+G_.m_){
-      ans=std::min(ans,sum);
-      if(ans==sum){
+      if(ans>sum){
+        ans=sum;
         v=value;
       }
       return;
@@ -31,7 +31,7 @@ double BruteForce::Solve(std::vector<int> & v){
           continue;
         }
         value[p]=i;
-        dfs(p+1,sum+=G_.edge_[pos].F_(i));
+        dfs(p+1,sum+G_.edge_[pos].F_(i));
       }
     }
   };
