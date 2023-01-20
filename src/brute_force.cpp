@@ -10,7 +10,7 @@ void BruteForce::ChangeGraph(Graph G){
 double BruteForce::Solve(std::vector<int> & v){
   std::vector<int> value(G_.n_+G_.m_);
   double ans=1e9;
-  std::function<void(int,int)> dfs = [this,&value,&ans,&dfs,&v](int p,double sum){
+  std::function<void(int,int)> dfs = [&,this](int p,double sum){
     if(p==G_.n_+G_.m_){
       if(ans>sum){
         ans=sum;
