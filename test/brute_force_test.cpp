@@ -107,7 +107,7 @@ void PrintCase(Graph G){
 Graph TinyGen(int n,int ml,int x=0){
   fun.clear();
   int m=rnd.next(n-1,ml);
-  GraphGenerator::Graph graph;
+  Generator::Graph graph;
   rnd.setSeed(x);
   graph.SetNode(n);
   graph.SetSide(m);
