@@ -8,5 +8,5 @@ class Problem{
     std::vector<Edge> edge;
     int n,U;
     double M;
-    Problem(Graph G){};
+    Problem(Graph G);
 };
