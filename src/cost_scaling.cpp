@@ -47,9 +47,31 @@ void Refine() {
     }
   }
   
+  auto Push = [&](int u,int x,int flow){
+    edge[x].capilty-=flow;
+    edge[x^1].capilty+=flow;
+    ioflow[u]-=flow;
+  };
+
+  auto Relabel = [&] (int u){
+    p[u]+=epsilon/2;
+  };
+
+  auto Modify = [&](int u){
+    for(int i=head[u];i!=-1;i=edge[i].v){
+      if(edge[i].cost>0){
+        Push(u,i,min(edge[i].cost,ioflow[u]));
+      }
+      if(ioflow[u]==0){
+        return;
+      }
+    }
+    Relabel(u);
+  };
 
   while(!st.empty()){
-    
+    Modify(st.top());
+    st.pop();
   }
 }
 
@@ -82,5 +104,9 @@ double MinCost(int n, vector<InputEdge> arc) {
     Refine();
     epsilon = epsilon / 2;
   }
+  for(auto e:edge){
+    total_cost-=e.capilty*e.cost;
+  }
+  return total_cost/2;
 }
 #undef int
