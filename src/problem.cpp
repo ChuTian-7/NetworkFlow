@@ -14,7 +14,7 @@ Problem::Problem(Graph G){
     std::function<double(int)> E;
     //1 assumption 3
     E = [e](int x){
-      int l=e.l_,r=e.r_;
+      int l=x,r=e.r_;
       while(l<r){
         int lmid=l+(r-l)/3;
         int rmid=r-(r-l)/3;
@@ -26,7 +26,7 @@ Problem::Problem(Graph G){
         }
       }
       double minval=std::min(e.F_(l),e.F_(r));
-      return std::min(minval,e.F_(x));
+      return minval;
     };
     edge.push_back({e.l_,e.r_,E,e.u_,e.v_});
   }

@@ -183,28 +183,38 @@ double SolveByCS(Graph g){
 
 int main(int argc , char** argv){
   int cas=0;
-  Graph g;
-  for(int i=1;i<=2;i++){
+  Graph g=Graph(
+    2,1,
+		{
+			{0,  0, [](int) { return 0; }},
+			{1, 1, [](int x) { return x; }},
+			{1, 2, [](int x) { return x; }},
+		},
+		{
+			{1,1, [](int x) { return 2*x*x+4*x-10; }, 1, 2},
+		}
+  );
+  // for(int i=1;i<=2;i++){
     //g=TinyGen(4,6,atoi(argv[1])); 
     //g=TinyGen(3,3,i+114514);
-    g=TinyGen(3,3,i+998244353);
-    printf("Test %d:\n",i);   
-    printf("n = %d, m = %d\n",g.n_,g.m_);
-    for(int i=1;i<=g.n_;i++){
-      printf("node %d : l = %d , u = %d , funtion = ",i,g.node_[i].l_,g.node_[i].r_);
-      PrintFunction(i-1);
-      puts("");
-    }
-    for(int i=0;i<g.m_;i++){
-      printf("edge %d : from = %d, to = %d , l = %d , u = %d , function = ",i+1,g.edge_[i].u_,g.edge_[i].v_,g.edge_[i].l_,g.edge_[i].r_);
-      PrintFunction(g.n_+i);
-      puts("");
-    }
-    PrintCase(g);
+    // g=TinyGen(3,3,i+998244353);
+    // printf("Test %d:\n",i);   
+    // printf("n = %d, m = %d\n",g.n_,g.m_);
+    // for(int i=1;i<=g.n_;i++){
+    //   printf("node %d : l = %d , u = %d , funtion = ",i,g.node_[i].l_,g.node_[i].r_);
+    //   PrintFunction(i-1);
+    //   puts("");
+    // }
+    // for(int i=0;i<g.m_;i++){
+    //   printf("edge %d : from = %d, to = %d , l = %d , u = %d , function = ",i+1,g.edge_[i].u_,g.edge_[i].v_,g.edge_[i].l_,g.edge_[i].r_);
+    //   PrintFunction(g.n_+i);
+    //   puts("");
+    // }
+    //PrintCase(g);
     double ans=SolveByBF(g);
     printf("answer = %lf\n",ans);
     double res=SolveByCS(g);
     printf("result = %lf\n",res);
-  }
+  // }
   return 0;
 }
