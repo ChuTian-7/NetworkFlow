@@ -7,3 +7,12 @@ ADD_TEST(NAME bruteforceTest COMMAND bruteforceTest)
 ADD_EXECUTABLE(problempartTest problem_part_test.cpp)
 TARGET_LINK_LIBRARIES(problempartTest graph_src problem_src)
 ADD_TEST(NAME problempartTest COMMAND problempartTest)
+
+# cost scaling test
+ADD_EXECUTABLE(costscalingTest cost_scaling_test.cpp)
+TARGET_LINK_LIBRARIES(costscalingTest cost_scaling_src)
+ADD_TEST(NAME costscalingTest COMMAND costscalingTest)
+
+# min25 test
+ADD_EXECUTABLE(min25Test min25_test.cpp)
+ADD_TEST(NAME min25Test COMMAND min25Test)

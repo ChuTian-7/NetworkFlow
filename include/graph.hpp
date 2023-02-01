@@ -25,6 +25,7 @@ class Graph{
     int n_,m_;
     std::deque<Node> node_;
     std::deque<Edge> edge_;
+    int U_;
     Graph(){};
     Graph(int n,int m,std::deque<Node>node,std::deque<Edge> edge);
 };
