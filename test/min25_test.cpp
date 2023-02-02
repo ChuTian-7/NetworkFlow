@@ -164,7 +164,23 @@ private:
     }
     vector<tcap_t> excess(initial_excess);
     for (auto& e : edges) excess[e.to] -= e.cap;
-
+    cout<<"edges:"<<endl;
+    for(int u=0;u<N;u++){
+      for(int i=ofs[u];i<ofs[u+1];i++){
+        auto& e=edges[i];
+        cout<<u<<" "<<e.to<<" "<<e.cost<<" "<<e.cap<<endl;
+      }
+    }
+    cout<<"potential:"<<endl;
+    for(auto p:potential){
+      cout<<p<<" ";
+    }
+    cout<<endl;
+    cout<<"excess:"<<endl;
+    for(auto f:excess){
+      cout<<f<<" ";
+    }
+    cout<<endl;
     vector<int> stack; stack.reserve(N);
     for (int u = 0; u < N; ++u) if (excess[u] > 0) stack.push_back(u);
 
@@ -210,6 +226,7 @@ private:
     };
     while (!stack.empty()) {
       auto u = stack.back(); stack.pop_back();
+      cout<<"assimble:"<<u<<endl;
       discharge(u);
     }
   }
@@ -237,6 +254,11 @@ private:
     //     cout<<u<<" "<<e.to<<" "<<e.cost<<" "<<e.cap<<endl;
     //   }
     // }
+    cout<<"init_flow:"<<endl;
+    for(auto x:initial_excess){
+      cout<<x<<" ";
+    }
+    cout<<endl;
   }
 
   bool has_feasible_circulation() {

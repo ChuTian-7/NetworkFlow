@@ -2,26 +2,27 @@
 #include <iostream>
 #include <stack>
 #include <vector>
+#include <assert.h>
 using namespace std;
 #define int long long
 double epsilon, flow;
 
 struct InputEdge {
-  int u, v, cost, capilty;
+  int u, v, cost, capacity;
 };
 
 struct Edge {
-  int u, v, cost, capilty, forward;
+  int u, v, cost, capacity,total;
 };
 
-vector<int> p;  // potential
+vector<double> p;  // potential
 vector<int> head;
 vector<Edge> edge;
-vector<int> init_ioflow;  // 入-出
+vector<int> init_ioflow;  //flow
 int N, len;
 int total_cost = 0;
 
-int CostPi(int u, Edge e) {
+double CostPi(int u, Edge e) {
   return e.cost - p[u] + p[e.v];
 }
 
@@ -29,24 +30,28 @@ void Refine() {
   for (int u = 0; u < N; u++) {
     for (int i = head[u]; i != -1; i = edge[i].u) {
       if (CostPi(u, edge[i]) < 0) {
-        edge[i ^ 1].capilty += edge[i].capilty;
-        edge[i].capilty = 0;
+        edge[i ^ 1].capacity += edge[i].capacity;
+        edge[i].capacity = 0;
       }
     }
   }
   vector<int> ioflow(init_ioflow);
   vector<bool> vis(N, 0);
-  // for (auto e : edge) {
-  //   ioflow[e.v] -= e.capilty;
-  // }
+  cout<<"edges:"<<endl;
   for(int u=0;u<N;u++){
     for(int i=head[u];i!=-1;i=edge[i].u){
-      if(edge[i].forward){
-        cout<<u<<" "<<edge[i].v<<" "<<edge[i].cost<<" "<<edge[i].capilty<<endl;
-        ioflow[u]+=edge[i].capilty;
-        ioflow[edge[i].v]-=edge[i].capilty;
-      }
+      auto e=edge[i];
+      cout<<u<<" "<<e.v<<" "<<e.cost<<" "<<e.capacity<<endl;
     }
+  }
+  cout<<"potential:"<<endl;
+  for(auto x:p){
+    cout<<x<<" ";
+  }
+  cout<<endl;
+  cout<<"ioflow:"<<endl;
+  for (auto e : edge) {
+    ioflow[e.v] -= e.capacity;
   }
   for (int i = 0; i < N; i++) {
     cout << ioflow[i] << " ";
@@ -61,33 +66,50 @@ void Refine() {
   }
 
   auto Push = [&](int u, int x, int flow) {
-    edge[x].capilty -= flow;
-    edge[x ^ 1].capilty += flow;
+    edge[x].capacity -= flow;
+    edge[x ^ 1].capacity += flow;
     ioflow[u] -= flow;
     ioflow[edge[x].v] += flow;
-    cout << u << " " << edge[x].v << " " << flow << " " << ioflow[edge[x].v]
-         << endl;
+    //cout << u << " " << edge[x].v << " " << flow << " " << ioflow[edge[x].v]<< endl;
     if (ioflow[edge[x].v] > 0 && vis[edge[x].v] == 0) {
       st.push(edge[x].v);
       vis[edge[x].v] = 1;
     }
+    for(int i=0;i<edge.size();i++){
+      //cout<<i<<" "<<(i^1)<<" "<<edge[i].capacity<<" "<<edge[i^1].capacity<<" "<<edge[i].total<<endl;
+      assert(edge[i].capacity+edge[i^1].capacity==edge[i].total);
+    }
   };
 
-  auto Relabel = [&](int u) { p[u] += epsilon / 2; };
+  auto Relabel = [&](int u) { 
+    p[u] += epsilon / 2; 
+    //cout<<"p:"<<u<<" "<<p[u]<<endl;  
+  };
 
   auto Modify = [&](int u) {
+    assert(ioflow[u]>0);
     for (int i = head[u]; i != -1; i = edge[i].u) {
-      if (edge[i].capilty > 0) {
-        Push(u, i, min(edge[i].capilty, ioflow[u]));
+      double w=CostPi(u,edge[i]);
+      cout<<"costpi:"<<u<<" "<<w<<endl;
+      //if (-epsilon/2<=w && w<0) {
+      if(w<0){
+        Push(u, i, min(edge[i].capacity, ioflow[u]));
+        // if(ioflow[u]>0){
+        //   st.push(u);
+        //   vis[u]=1;
+        // }
+        // return;
       }
-      cout << edge[i].capilty << " " << ioflow[u] << endl;
+      //cout << edge[i].capacity << " " << ioflow[u] << endl;
       if (ioflow[u] == 0) {
         return;
       }
     }
+    assert(ioflow[u]>0);
     Relabel(u);
+    st.push(u);
+    vis[u]=1;
   };
-
   while (!st.empty()) {
     int u = st.top();
     st.pop();
@@ -95,9 +117,10 @@ void Refine() {
     cout << "assimble:" << u << endl;
     Modify(u);
   }
+
 }
-void AddEdge(int u, int v, int c, int p, int f) {
-  edge.push_back({head[u], v, c, p, f});
+void AddEdge(int u, int v, int c, int p,int tot) {
+  edge.push_back({head[u], v, c, p, tot});
   len++;
   head[u] = len;
 }
@@ -110,18 +133,30 @@ void Init(vector<InputEdge> arc) {
   // ioflow.resize(N, 0);
   len = -1;
   for (auto e : arc) {
-    cout<<e.u<<" "<<e.v<<" "<<e.cost<<" "<<e.capilty<<endl;
+    //cout<<e.u<<" "<<e.v<<" "<<e.cost<<" "<<e.capacity<<endl;
     epsilon = max(epsilon, e.cost * 1.0);
-    total_cost += e.capilty * e.cost;
-    //init_ioflow[e.u] += e.capilty;
-    // ioflow[e.v] -= e.capilty;
-    AddEdge(e.u, e.v, e.cost, e.capilty, 1);
-    AddEdge(e.v, e.u, -e.cost, 0, 0);
+    total_cost += e.capacity * e.cost;
+    init_ioflow[e.v] += e.capacity;
+    // ioflow[e.v] -= e.capacity;
+    AddEdge(e.u, e.v, e.cost, e.capacity,e.capacity);
+    AddEdge(e.v, e.u, -e.cost, 0,e.capacity);
   }
   p.resize(N, 0);
+  cout<<"init_flow:"<<endl;
+  for(auto x:init_ioflow){
+    cout<<x<<" ";
+  }
+  cout<<endl;
+  for(int i=0;i<edge.size();i++){
+    assert(-edge[i].cost==edge[i^1].cost);
+  }
+  // cout<<"edges:"<<endl;
+  // for(auto e:edge){
+  //   cout<<e.u<<" "<<e.v<<" "<<e.cost<<" "<<e.capacity<<endl;
+  // }
 }
 
-double MinCost(int n, vector<InputEdge> arc) {
+int MinCost(int n, vector<InputEdge> arc) {
   N = n;
   Init(arc);
   while (epsilon * N >= 1.0) {
@@ -129,13 +164,14 @@ double MinCost(int n, vector<InputEdge> arc) {
     Refine();
     epsilon = epsilon / 2;
   }
-  total_cost = 0;
+  //total_cost = 0;
+  //cout<<(int)total_cost<<endl;
   for (auto e : edge) {
     // if (e.cost <= 0)
     //   continue;
-    // cout << e.capilty << " " << e.cost << endl;
-    total_cost += e.capilty * e.cost;
+    // cout << e.capacity << " " << e.cost << endl;
+    total_cost -= e.capacity * e.cost;
   }
-  return total_cost / 2;
+  return -total_cost / 2;
 }
 #undef int
