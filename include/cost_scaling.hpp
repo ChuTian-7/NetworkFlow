@@ -17,7 +17,8 @@ std::vector<int> head;
 std::vector<Arc> arc;
 std::vector<double> excess;  // excess
 std::vector<double> flow;
-int N, len, M;
+int N, len;
+double M;
 double epsilon;
 
 double CostPi(int u, Arc e) {
@@ -30,7 +31,17 @@ void AddEdge(int l,int r,int u,int v,int c,double p,std::function<double(int)> F
   head[u] = len;
 }
 
-double bij(auto e, int x) {
+double bij(Edge e, int x) {
+  if (x < e.l_) {
+    return -M;
+  } else if (x >= e.r_) {
+    return M;
+  } else {
+    return e.F_(x + 1) - e.F_(x);
+  }
+}
+
+double bij(Arc e, int x) {
   if (x < e.l) {
     return -M;
   } else if (x >= e.r) {
@@ -44,10 +55,10 @@ double qij(int u, Arc e) {
   int v = e.v;
   int k = floor(p[u] - p[v]);
   if (k >= e.u) {
-    return M - flow[e.id];
+    return M;
   }
   if (k <= e.l) {
-    return M + flow[e.id];
+    return M;
   }
   return bij(e, k) - flow[e.id];
 }
@@ -56,8 +67,10 @@ void PushAdmissibleEdge() {
   for (int u = 0; u < N; u++) {
     for (int i = head[u]; i != -1; i = arc[i].u) {
       double w = CostPi(u, arc[i]);
+      //std::cout<<u<<" "<<arc[i].v<<" "<<w<<"\n";
       if (-epsilon < w && w < 0) {
         double q = qij(u, arc[i]);
+        //std::cout<<q<<"\n";
         flow[arc[i].id] += q;
         flow[arc[i ^ 1].id] -= q;
         arc[i].capacity -= q;
@@ -121,23 +134,24 @@ bool Refine() {
 }
 
 void Init(std::vector<Edge> edge) {
-  epsilon = 1;
-  flow.resize(edge.size() * 2, 0);
+  arc.clear();
   head.resize(N, -1);
   excess.resize(N, 0);
   p.resize(N, 0);
   len = -1;
   for (auto e : edge) {
     for (int i = e.l_; i <= e.r_; i++) {
+      //std::cout<<i<<" "<<bij(e,i)<<"\n";
       AddEdge(e.l_, e.r_, e.u_, e.v_, i, bij(e, i), e.F_);
       AddEdge(-e.u_, -e.l_, e.v_, e.u_, i, 0, e.Reverse());
     }
   }
+  flow.resize(arc.size(),0);
 }
 
-double Cost(Arc e, double f) {
+double Cost(Arc e, double k) {
   int l = e.l, r = e.r;
-  auto Count = [&](int x) { return e.F(x) - f * x; };
+  auto Count = [&](int x) { return e.F(x) - k * x; };
   while (l < r) {
     int lmid = l + (r - l) / 3;
     int rmid = r - (r - l) / 3;
@@ -147,6 +161,7 @@ double Cost(Arc e, double f) {
       l = lmid + 1;
     }
   }
+  std::cout<<l<<" "<<r;
   double minval = std::min(Count(l), Count(r));
   return minval;
 }
@@ -162,13 +177,14 @@ std::pair<bool, double> MinCost(Problem p) {
     }
     epsilon = epsilon / 2;
   }
-  for (auto x : flow) {
-    std::cout << x << " ";
-  }
-  std::cout << "\n";
+  // for (auto x : flow) {
+  //   std::cout << x << " ";
+  // }
+  // std::cout << "\n";
   double ans = 0;
   for (auto e : arc) {
-    ans += Cost(e, flow[e.id]);
+    //std::cout<<e.v<<" "<<e.cost<<" "<<e.capacity<<"\n";
+    ans += Cost(e,flow[e.id]);
   }
   return {true, ans / 2};
 }

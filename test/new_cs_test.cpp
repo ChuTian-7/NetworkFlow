@@ -1,0 +1,129 @@
+#include<iostream>
+#include"cost_scaling.hpp"
+#include<map>
+#include"gen.h"
+#include"testlib.h"
+#include"brute_force.hpp"
+#include<iostream>
+
+using namespace std;
+
+struct Fun{
+  int a,b,c;
+};
+std::vector<Fun> fun;
+
+std::function<double(int)> RandF(){
+  int a=rnd.next(0,10);
+  int b=rnd.next(-10,10);
+  int c=rnd.next(-10,10);
+  fun.push_back({a,b,c});
+  return [a,b,c](int x){return a*x*x+b*x+c;};
+}
+
+void PrintFunction(int x){
+  printf(" ( %d ) * x * x + ( %d ) * x + ( %d )",fun[x].a,fun[x].b,fun[x].c);
+}
+
+void PrintCase(Graph G){
+  printf("%d ,\n{\n",G.n_);
+  printf("  {0,0,[](int){ return 0;}},\n");
+  for(int i=1;i<=G.n_;i++){
+    printf("  {%d,%d,[](int x){ return",G.node_[i].l_,G.node_[i].r_);
+    PrintFunction(i-1);
+    printf(";}},\n");
+  }
+  printf("},\n{\n");
+  for(int i=0;i<G.m_;i++){
+    printf("  {{%d,%d,[](int x){ return",G.edge_[i].l_,G.edge_[i].r_);
+    PrintFunction(i+G.n_);
+    printf(";}},%d,%d},\n",G.edge_[i].u_,G.edge_[i].v_);
+  }
+  printf("}\n");
+}
+
+double SolveByBF(Graph g){
+  BruteForce bf;
+  bf.ChangeGraph(g);
+  std::vector<int> value;
+  double answer=bf.Solve(value);
+  if(answer==1e9){
+    answer=nan("");
+  }
+  return answer;
+}
+
+Graph TinyGen(int n,int ml,int x=0){
+  fun.clear();
+  int m=rnd.next(n-1,ml);
+  Generator::Graph graph;
+  rnd.setSeed(x);
+  graph.SetNode(n);
+  graph.SetSide(m);
+  graph.SetMultiplyEdge(false);
+  //graph.SetMultiplyEdge(true);
+  graph.GenGraph();
+  std::vector<std::pair<int,int>> e=graph.GetEdge();
+  Graph nxt;
+  nxt.n_=n;
+  nxt.m_=m;
+  nxt.node_.resize(n+1);
+  nxt.edge_.resize(m);
+  for(int i=1;i<=n;i++){
+    nxt.node_[i].l_=rnd.next(-5,5);
+    nxt.node_[i].r_=rnd.next(-5,5);
+    if(nxt.node_[i].l_>nxt.node_[i].r_){
+      std::swap(nxt.node_[i].l_,nxt.node_[i].r_);
+    }
+    nxt.node_[i].F_=RandF();
+  }
+  std::map<std::pair<int,int>,int> mp;
+  for(int i=0;i<m;i++){   
+    nxt.edge_[i].l_=rnd.next(-5,5);
+    nxt.edge_[i].r_=rnd.next(-5,5);
+    if(nxt.edge_[i].l_>nxt.edge_[i].r_){
+      std::swap(nxt.edge_[i].l_,nxt.edge_[i].r_);
+    }
+    nxt.edge_[i].F_=RandF();
+    if(mp[e[i]]){
+      e[i]=e[mp[e[i]]-1];
+    }
+    else{
+      mp[e[i]]=i+1;
+      mp[std::make_pair(e[i].second,e[i].first)]=i+1;
+    }
+    nxt.edge_[i].u_=e[i].first+1;
+    nxt.edge_[i].v_=e[i].second+1;
+  }
+  return nxt;
+}
+
+
+int main(int argc , char** argv){
+  int cas=0;
+  Graph g;
+  for(int i=1;i<=1;i++){
+    //g=TinyGen(4,6,atoi(argv[1])); 
+    //g=TinyGen(3,3,i+114514);
+    //g=TinyGen(3,3,i+998244353);
+    g=TinyGen(1,0,i);
+    printf("Test %d:\n",i);   
+    printf("n = %d, m = %d\n",g.n_,g.m_);
+    for(int i=1;i<=g.n_;i++){
+      printf("node %d : l = %d , u = %d , funtion = ",i,g.node_[i].l_,g.node_[i].r_);
+      PrintFunction(i-1);
+      puts("");
+    }
+    for(int i=0;i<g.m_;i++){
+      printf("edge %d : from = %d, to = %d , l = %d , u = %d , function = ",i+1,g.edge_[i].u_,g.edge_[i].v_,g.edge_[i].l_,g.edge_[i].r_);
+      PrintFunction(g.n_+i);
+      puts("");
+    }
+    Problem p(g);
+    auto [success,ans]=MinCost(p);
+    cout<<success<<" "<<ans<<endl;    
+    double res=SolveByBF(g);
+    cout<<res<<endl;
+ }
+  return 0;
+}
