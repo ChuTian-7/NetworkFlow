@@ -18,6 +18,7 @@ class Edge{
     int u_,v_;
     Edge(){};
     Edge(int l,int r,std::function<double(int)> F,int u,int v);
+    std::function<double(int)> Reverse();
 };
 
 class Graph{

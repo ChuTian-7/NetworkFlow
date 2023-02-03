@@ -30,7 +30,6 @@ double CostPi(int u, Edge e) {
 }
 
 bool Refine() {
-  vector<int> ti(N,0);
   for (int u = 0; u < N; u++) {
     for (int i = head[u]; i != -1; i = edge[i].u) {
       if (CostPi(u, edge[i]) < 0) {
@@ -118,8 +117,7 @@ bool Refine() {
     int u = st.top();
     st.pop();
     vis[u] = 0;
-    ti[u]++;
-    if(ti[u]>N){
+    if(p[u]>3*N*epsilon){
       return false;
     }
     //cout << "assimble:" << u << endl;

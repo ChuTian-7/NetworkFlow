@@ -67,10 +67,10 @@ Graph Gen(int x=0){
 }
 
 int main(){
-  for(int i=1;i<=5;i++){
+  for(int i=1;i<=1;i++){
     Graph g=Gen(i);
     Problem p(g);
-    PrintCase(g);
+    //PrintCase(g);
     for(auto x:p.edge){
       for(int i=x.l_;i<=x.r_;i++){
         printf("%d %lf %lf\n",i,g.edge_[0].F_(i),x.F_(i));
