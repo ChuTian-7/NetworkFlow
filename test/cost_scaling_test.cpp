@@ -147,15 +147,14 @@ pair<bool, double> SolveByCS(Graph g) {
       return minval;
     };
     e.F_=E;
+    e.l_=g.node_[e.u_].l_-g.node_[e.v_].r_;
     for (int i = e.l_; i <= e.r_; i++) {
       double w = bij(e.F_, e.l_, e.r_, i) - bij(e.F_, e.l_, e.r_, i - 1);
       assert(w >= 0);
       edge.push_back({e.u_, e.v_, i, w, 0, w, cnt});
       if(w>1e5)
         edge.push_back({e.v_, e.u_, -i, M, 0, M, cnt + 1});
-    }
-
-    e.l_=g.node_[e.u_].l_-g.node_[e.v_].r_;
+    } 
     functions.push_back(E);
     limi.push_back({e.l_, e.r_});
     cnt += 2;
@@ -163,7 +162,7 @@ pair<bool, double> SolveByCS(Graph g) {
   auto [success,useless] = MinCost(g.n_ + 1, edge);
   double res =0;
   for (int i = 0; i < f.size(); i += 2) {
-    int fl = (f[i] - f[i+1])/2;
+    int fl = f[i] - f[i+1];
     auto q = [F(functions[i / 2]), li(limi[i / 2])](int x) {
       auto Count = [&](int w) { return F(w) - x * w; };
       auto [l, r] = li;
