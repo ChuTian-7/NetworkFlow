@@ -164,23 +164,23 @@ private:
     }
     vector<tcap_t> excess(initial_excess);
     for (auto& e : edges) excess[e.to] -= e.cap;
-    cout<<"edges:"<<endl;
+    //cout<<"edges:"<<endl;
     for(int u=0;u<N;u++){
       for(int i=ofs[u];i<ofs[u+1];i++){
         auto& e=edges[i];
-        cout<<u<<" "<<e.to<<" "<<e.cost<<" "<<e.cap<<endl;
+        //cout<<u<<" "<<e.to<<" "<<e.cost<<" "<<e.cap<<endl;
       }
     }
-    cout<<"potential:"<<endl;
-    for(auto p:potential){
-      cout<<p<<" ";
-    }
-    cout<<endl;
-    cout<<"excess:"<<endl;
-    for(auto f:excess){
-      cout<<f<<" ";
-    }
-    cout<<endl;
+    // cout<<"potential:"<<endl;
+    // for(auto p:potential){
+    //   cout<<p<<" ";
+    // }
+    // cout<<endl;
+    // cout<<"excess:"<<endl;
+    // for(auto f:excess){
+    //   cout<<f<<" ";
+    // }
+    // cout<<endl;
     vector<int> stack; stack.reserve(N);
     for (int u = 0; u < N; ++u) if (excess[u] > 0) stack.push_back(u);
 
@@ -226,7 +226,7 @@ private:
     };
     while (!stack.empty()) {
       auto u = stack.back(); stack.pop_back();
-      cout<<"assimble:"<<u<<endl;
+      //cout<<"assimble:"<<u<<endl;
       discharge(u);
     }
   }
@@ -254,11 +254,11 @@ private:
     //     cout<<u<<" "<<e.to<<" "<<e.cost<<" "<<e.cap<<endl;
     //   }
     // }
-    cout<<"init_flow:"<<endl;
-    for(auto x:initial_excess){
-      cout<<x<<" ";
-    }
-    cout<<endl;
+    // cout<<"init_flow:"<<endl;
+    // for(auto x:initial_excess){
+    //   cout<<x<<" ";
+    // }
+    // cout<<endl;
   }
 
   bool has_feasible_circulation() {
@@ -285,7 +285,8 @@ void solve() {
   int N, M;
   while (~scanf("%d %d", &N, &M)) {
     int s, t;
-    cin >> s >> t;
+    //cin >> s >> t;
+    //s=1,t=N;
     MCC mcc1(N, M), mcc2(N, M);
     rep(i, M) {
       int u = get_int() - 1, v = get_int() - 1;
@@ -293,16 +294,16 @@ void solve() {
       mcc1.add_directed_edge(u, v, 0, c, 0);
       mcc2.add_directed_edge(u, v, 0, c, cost);
     }
-    mcc1.add_directed_edge(t - 1, s - 1, 0, 0x3f3f3f3f3f3f3f3f, -1);
+    //mcc1.add_directed_edge(t - 1, s - 1, 0, 0x3f3f3f3f3f3f3f3f, -1);
     auto max_flow = -mcc1.minimum_cost_circulation().second;
     mcc2.add_directed_edge(t - 1, s - 1, max_flow, max_flow, 0);
-    cout<<max_flow;
+    cout<<max_flow<<" "<<mcc2.minimum_cost_circulation().second<<"\n";
     break;
   }
 }
 
 int main() {
-  freopen("/home/yuhan/notuse/b.txt","w",stdout);
+  //freopen("/home/yuhan/notuse/b.txt","w",stdout);
   //clock_t beg = clock();
   solve();
   // clock_t end = clock();

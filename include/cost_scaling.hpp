@@ -1,91 +1,53 @@
-#pragma once
 #include <math.h>
 #include <iostream>
 #include <stack>
 #include <vector>
-#include "problem.hpp"
-struct Arc {
-  int l, r;
+#include <assert.h>
+
+using namespace std;
+#define int long long
+double epsilon, flow;
+
+struct InputEdge {
   int u, v, cost;
-  double capacity;
-  std::function<double(int)> F;
+  double capacity,lower,upper;
   int id;
 };
 
-std::vector<double> p;  // potential
-std::vector<int> head;
-std::vector<Arc> arc;
-std::vector<double> excess;  // excess
-std::vector<double> flow;
+struct Arc {
+  int u, v, cost;
+  double capacity,total;
+  int id;
+};
+
+vector<double> p;  // potential
+vector<int> head;
+vector<double> f;
+
+vector<Arc> edge;
+vector<double> init_excess;  //excess
 int N, len;
-double M;
-double epsilon;
+double total_cost = 0;
 
 double CostPi(int u, Arc e) {
   return e.cost - p[u] + p[e.v];
 }
 
-void AddEdge(int l,int r,int u,int v,int c,double p,std::function<double(int)> F) {
-  len++;
-  arc.push_back({l, r, head[u], v, c, p, F, len});
-  head[u] = len;
-}
-
-double bij(Edge e, int x) {
-  if (x < e.l_) {
-    return -M;
-  } else if (x >= e.r_) {
-    return M;
-  } else {
-    return e.F_(x + 1) - e.F_(x);
-  }
-}
-
-double bij(Arc e, int x) {
-  if (x < e.l) {
-    return -M;
-  } else if (x >= e.r) {
-    return M;
-  } else {
-    return e.F(x + 1) - e.F(x);
-  }
-}
-
-double qij(int u, Arc e) {
-  int v = e.v;
-  int k = floor(p[u] - p[v]);
-  if (k >= e.u) {
-    return M;
-  }
-  if (k <= e.l) {
-    return M;
-  }
-  return bij(e, k) - flow[e.id];
-}
-
-void PushAdmissibleEdge() {
+bool Refine() {
   for (int u = 0; u < N; u++) {
-    for (int i = head[u]; i != -1; i = arc[i].u) {
-      double w = CostPi(u, arc[i]);
-      //std::cout<<u<<" "<<arc[i].v<<" "<<w<<"\n";
-      if (-epsilon < w && w < 0) {
-        double q = qij(u, arc[i]);
-        //std::cout<<q<<"\n";
-        flow[arc[i].id] += q;
-        flow[arc[i ^ 1].id] -= q;
-        arc[i].capacity -= q;
-        arc[i ^ 1].capacity += q;
-        excess[u] -= q;
-        excess[arc[i].v] += q;
+    for (int i = head[u]; i != -1; i = edge[i].u) {
+      if (CostPi(u, edge[i]) < 0) {
+        edge[i ^ 1].capacity += edge[i].capacity;
+        edge[i].capacity = 0;
       }
     }
   }
-}
-
-bool Refine() {
-  PushAdmissibleEdge();
-  std::stack<int> st;
-  std::vector<bool> vis(N, 0);
+  vector<double> excess(init_excess);
+  vector<bool> vis(N, 0);
+  for (auto e : edge) {
+    excess[e.v] -= e.capacity;
+  }
+  stack<int> st;
   for (int u = 0; u < N; u++) {
     if (excess[u] > 0) {
       st.push(u);
@@ -94,97 +56,98 @@ bool Refine() {
   }
 
   auto Push = [&](int u, int x, int flow) {
-    arc[x].capacity -= flow;
-    arc[x ^ 1].capacity += flow;
+    edge[x].capacity -= flow;
+    edge[x ^ 1].capacity += flow;
     excess[u] -= flow;
-    excess[arc[x].v] += flow;
-    if (excess[arc[x].v] > 0 && vis[arc[x].v] == 0) {
-      st.push(arc[x].v);
-      vis[arc[x].v] = 1;
+    excess[edge[x].v] += flow;
+    if (excess[edge[x].v] > 0 && vis[edge[x].v] == 0) {
+      st.push(edge[x].v);
+      vis[edge[x].v] = 1;
+    }
+    for(int i=0;i<edge.size();i++){
+      assert(edge[i].capacity+edge[i^1].capacity==edge[i].total);
     }
   };
 
-  auto Relabel = [&](int u) { p[u] += epsilon / 2; };
+  auto Relabel = [&](int u) { 
+    p[u] += epsilon / 2; 
+  };
 
-  auto Choice = [&](int u) {
-    for (int i = head[u]; i != -1; i = arc[i].u) {
-      double w = CostPi(u, arc[i]);
-      if (-epsilon < w && w < 0) {
-        Push(u, i, std::min(qij(u, arc[i]), excess[u]));
+  auto Modify = [&](int u) {
+    assert(excess[u]>0);
+    for (int i = head[u]; i != -1; i = edge[i].u) {
+      double w=CostPi(u,edge[i]);
+      if(w<0){
+        Push(u, i, min(edge[i].capacity, excess[u]));  
       }
       if (excess[u] == 0) {
         return;
       }
     }
+    assert(excess[u]>0);
     Relabel(u);
     st.push(u);
-    vis[u] = 1;
+    vis[u]=1;
   };
-
   while (!st.empty()) {
     int u = st.top();
     st.pop();
     vis[u] = 0;
-    if (p[u] > 3 * N * epsilon) {
+    if(p[u]>3*N*epsilon){
       return false;
     }
-    Choice(u);
+    Modify(u);
   }
   return true;
 }
+void AddEdge(int u, int v, int c, double p,double tot,int id) {
+  edge.push_back({head[u], v, c, p, tot,id});
+  len++;
+  head[u] = len;
+}
 
-void Init(std::vector<Edge> edge) {
-  arc.clear();
+void Init(vector<InputEdge> arc) {
+  edge.clear();
+  head.clear();
+  init_excess.clear();
+  p.clear();
+  f.clear();
+  total_cost=0;
+  epsilon = 1;
+  flow = 0;
   head.resize(N, -1);
-  excess.resize(N, 0);
-  p.resize(N, 0);
+  init_excess.resize(N,0);
+  int cnt=0;
   len = -1;
-  for (auto e : edge) {
-    for (int i = e.l_; i <= e.r_; i++) {
-      //std::cout<<i<<" "<<bij(e,i)<<"\n";
-      AddEdge(e.l_, e.r_, e.u_, e.v_, i, bij(e, i), e.F_);
-      AddEdge(-e.u_, -e.l_, e.v_, e.u_, i, 0, e.Reverse());
-    }
+  for (auto e : arc) {
+    epsilon = max(epsilon, e.cost * 1.0);
+    total_cost += e.capacity * e.cost;
+    init_excess[e.v] += e.upper;
+    init_excess[e.u] += -e.lower;
+    AddEdge(e.u, e.v, e.cost, e.capacity,e.capacity,-1);
+    AddEdge(e.v, e.u, -e.cost, 0,e.capacity,e.id);
+    cnt=max(cnt,e.id);
   }
-  flow.resize(arc.size(),0);
+  p.resize(N, 0);
+  f.resize(cnt+1,0);
 }
 
-double Cost(Arc e, double k) {
-  int l = e.l, r = e.r;
-  auto Count = [&](int x) { return e.F(x) - k * x; };
-  while (l < r) {
-    int lmid = l + (r - l) / 3;
-    int rmid = r - (r - l) / 3;
-    if (Count(lmid) <= Count(rmid)) {
-      r = rmid - 1;
-    } else {
-      l = lmid + 1;
-    }
-  }
-  std::cout<<l<<" "<<r;
-  double minval = std::min(Count(l), Count(r));
-  return minval;
-}
-
-std::pair<bool, double> MinCost(Problem p) {
-  N = p.n;
-  M = p.M;
-  epsilon = p.U;
-  Init(p.edge);
+pair<bool,int> MinCost(int n, vector<InputEdge> arc) {
+  N = n;
+  Init(arc);
   while (epsilon * N >= 1.0) {
-    if (Refine() == false) {
-      return {false, 0};
+    if(Refine()==false){
+      return {false,0};
     }
     epsilon = epsilon / 2;
   }
-  // for (auto x : flow) {
-  //   std::cout << x << " ";
-  // }
-  // std::cout << "\n";
-  double ans = 0;
-  for (auto e : arc) {
-    //std::cout<<e.v<<" "<<e.cost<<" "<<e.capacity<<"\n";
-    ans += Cost(e,flow[e.id]);
+  for (auto e : edge) {
+    if(e.id!=-1){
+      f[e.id]+=e.capacity;
+    }
+    total_cost -= e.capacity * e.cost;//这不是这个问题的cost
   }
-  return {true, ans / 2};
+  return {true,-total_cost / 2};
 }
+#undef int
+

@@ -1,219 +1,219 @@
-#include <math.h>
 #include <iostream>
-#include <stack>
-#include <vector>
-#include <assert.h>
+#include <map>
+#include "brute_force.hpp"
+#include "cost_scaling.hpp"
+#include "gen.h"
+#include "testlib.h"
 using namespace std;
-#define int long long
-double epsilon, flow;
 
-struct InputEdge {
-  int u, v, cost, capacity,lower,upper,id;
+struct Fun {
+  int a, b, c;
 };
+std::vector<Fun> fun;
 
-struct Edge {
-  int u, v, cost, capacity,total,id;
-};
-
-vector<int> f;
-
-vector<double> p;  // potential
-vector<int> head;
-
-vector<Edge> edge;
-vector<int> init_ioflow;  //flow
-int N, len;
-int total_cost = 0;
-
-double CostPi(int u, Edge e) {
-  return e.cost - p[u] + p[e.v];
+std::function<double(int)> RandF() {
+  int a = rnd.next(0, 10);
+  int b = rnd.next(-10, 10);
+  int c = rnd.next(-10, 10);
+  fun.push_back({a, b, c});
+  return [a, b, c](int x) { return a * x * x + b * x + c; };
 }
 
-bool Refine() {
-  for (int u = 0; u < N; u++) {
-    for (int i = head[u]; i != -1; i = edge[i].u) {
-      if (CostPi(u, edge[i]) < 0) {
-        edge[i ^ 1].capacity += edge[i].capacity;
-        edge[i].capacity = 0;
+void PrintFunction(int x) {
+  printf(" ( %d ) * x * x + ( %d ) * x + ( %d )", fun[x].a, fun[x].b, fun[x].c);
+}
+
+void PrintCase(Graph G) {
+  printf("%d ,\n{\n", G.n_);
+  printf("  {0,0,[](int){ return 0;}},\n");
+  for (int i = 1; i <= G.n_; i++) {
+    printf("  {%d,%d,[](int x){ return", G.node_[i].l_, G.node_[i].r_);
+    PrintFunction(i - 1);
+    printf(";}},\n");
+  }
+  printf("},\n{\n");
+  for (int i = 0; i < G.m_; i++) {
+    printf("  {{%d,%d,[](int x){ return", G.edge_[i].l_, G.edge_[i].r_);
+    PrintFunction(i + G.n_);
+    printf(";}},%d,%d},\n", G.edge_[i].u_, G.edge_[i].v_);
+  }
+  printf("}\n");
+}
+
+double SolveByBF(Graph g) {
+  BruteForce bf;
+  bf.ChangeGraph(g);
+  std::vector<int> value;
+  double answer = bf.Solve(value);
+  for (auto x : value) {
+    cout << x << " ";
+  }
+  cout << endl;
+  if (answer == 1e9) {
+    answer = nan("");
+  }
+  return answer;
+}
+
+Graph TinyGen(int n, int ml, int x = 0) {
+  fun.clear();
+  int m = rnd.next(n - 1, ml);
+  Generator::Graph graph;
+  rnd.setSeed(x);
+  graph.SetNode(n);
+  graph.SetSide(m);
+  graph.SetMultiplyEdge(false);
+  // graph.SetMultiplyEdge(true);
+  graph.GenGraph();
+  std::vector<std::pair<int, int>> e = graph.GetEdge();
+  Graph nxt;
+  nxt.n_ = n;
+  nxt.m_ = m;
+  nxt.node_.resize(n + 1);
+  nxt.edge_.resize(m);
+  for (int i = 1; i <= n; i++) {
+    nxt.node_[i].l_ = rnd.next(-5, 5);
+    nxt.node_[i].r_ = rnd.next(-5, 5);
+    if (nxt.node_[i].l_ > nxt.node_[i].r_) {
+      std::swap(nxt.node_[i].l_, nxt.node_[i].r_);
+    }
+    nxt.node_[i].F_ = RandF();
+  }
+  std::map<std::pair<int, int>, int> mp;
+  for (int i = 0; i < m; i++) {
+    nxt.edge_[i].l_ = rnd.next(-5, 5);
+    nxt.edge_[i].r_ = rnd.next(-5, 5);
+    if (nxt.edge_[i].l_ > nxt.edge_[i].r_) {
+      std::swap(nxt.edge_[i].l_, nxt.edge_[i].r_);
+    }
+    nxt.edge_[i].F_ = RandF();
+    if (mp[e[i]]) {
+      e[i] = e[mp[e[i]] - 1];
+    } else {
+      mp[e[i]] = i + 1;
+      mp[std::make_pair(e[i].second, e[i].first)] = i + 1;
+    }
+    nxt.edge_[i].u_ = e[i].first + 1;
+    nxt.edge_[i].v_ = e[i].second + 1;
+  }
+  return nxt;
+}
+
+double bij(function<double(int)> f, int l, int r, int x) {
+  double M = 1e6;
+  if (x < l) {
+    return -M;
+  }
+  if (x >= r) {
+    return M;
+  }
+  return f(x + 1) - f(x);
+}
+
+//这儿是拆边和处理，问题应该出在这里
+pair<bool, double> SolveByCS(Graph g) {
+  vector<function<double(int)>> functions;
+  vector<pair<int, int>> limi;
+  double M = 1e6;
+  int cnt = 0;
+  vector<InputEdge> edge;
+  for (int i = 1; i <= g.n_; i++) {
+    auto e = g.node_[i];
+    for (int j = e.l_; j <= e.r_; j++) {
+      double w = bij(e.F_, e.l_, e.r_, j) - bij(e.F_, e.l_, e.r_, j - 1);
+      assert(w >= 0);
+      edge.push_back({i, 0, j, w, 0, w, cnt});
+      if(w>1e5)
+        edge.push_back({0, i, -j, M, 0, M, cnt + 1});
+    }
+    cnt += 2;
+    functions.push_back(e.F_);
+    limi.push_back({e.l_, e.r_});
+  }
+  for (auto e : g.edge_) {    
+    std::function<double(int)> E;
+    E = [e](int x) {
+      int l = e.l_, r = e.r_;
+      while (l < r) {
+        int lmid = l + (r - l) / 3;
+        int rmid = r - (r - l) / 3;
+        if (e.F_(lmid) <= e.F_(rmid)) {
+          r = rmid - 1;
+        } else {
+          l = lmid + 1;
+        }
       }
+      double minval = std::min(e.F_(l), e.F_(r));
+      return std::max(minval,e.F_(x));
+    };
+    e.F_=E;
+    for (int i = e.l_; i <= e.r_; i++) {
+      double w = bij(e.F_, e.l_, e.r_, i) - bij(e.F_, e.l_, e.r_, i - 1);
+      assert(w >= 0);
+      edge.push_back({e.u_, e.v_, i, w, 0, w, cnt});
+      if(w>1e5)
+        edge.push_back({e.v_, e.u_, -i, M, 0, M, cnt + 1});
     }
-  }
-  vector<int> ioflow(init_ioflow);
-  vector<bool> vis(N, 0);
-  // cout<<"edges:"<<endl;
-  // for(int u=0;u<N;u++){
-  //   for(int i=head[u];i!=-1;i=edge[i].u){
-  //     auto e=edge[i];
-  //     cout<<u<<" "<<e.v<<" "<<e.cost<<" "<<e.capacity<<endl;
-  //   }
-  // }
-  // cout<<"potential:"<<endl;
-  // for(auto x:p){
-  //   cout<<x<<" ";
-  // }
-  // cout<<endl;
-  // cout<<"ioflow:"<<endl;
-  // for (int i = 0; i < N; i++) {
-  //   cout << ioflow[i] << " ";
-  // }
-  // cout << endl;  
-  for (auto e : edge) {
-    ioflow[e.v] -= e.capacity;
-  }
-  stack<int> st;
-  for (int u = 0; u < N; u++) {
-    if (ioflow[u] > 0) {
-      st.push(u);
-      vis[u] = 1;
-    }
-  }
 
-  auto Push = [&](int u, int x, int flow) {
-    edge[x].capacity -= flow;
-    edge[x ^ 1].capacity += flow;
-    ioflow[u] -= flow;
-    ioflow[edge[x].v] += flow;
-    //cout << u << " " << edge[x].v << " " << flow << " " << ioflow[edge[x].v]<< endl;
-    if (ioflow[edge[x].v] > 0 && vis[edge[x].v] == 0) {
-      st.push(edge[x].v);
-      vis[edge[x].v] = 1;
-    }
-    for(int i=0;i<edge.size();i++){
-      //cout<<i<<" "<<(i^1)<<" "<<edge[i].capacity<<" "<<edge[i^1].capacity<<" "<<edge[i].total<<endl;
-      assert(edge[i].capacity+edge[i^1].capacity==edge[i].total);
-    }
-  };
-
-  auto Relabel = [&](int u) { 
-    p[u] += epsilon / 2; 
-    //cout<<"p:"<<u<<" "<<p[u]<<endl;  
-  };
-
-  auto Modify = [&](int u) {
-    assert(ioflow[u]>0);
-    for (int i = head[u]; i != -1; i = edge[i].u) {
-      double w=CostPi(u,edge[i]);
-      //cout<<"costpi:"<<u<<" "<<w<<endl;
-      //if (-epsilon/2<=w && w<0) {
-      if(w<0){
-        Push(u, i, min(edge[i].capacity, ioflow[u]));
-        // if(ioflow[u]>0){
-        //   st.push(u);
-        //   vis[u]=1;
-        // }
-        // return;
+    e.l_=g.node_[e.u_].l_-g.node_[e.v_].r_;
+    functions.push_back(E);
+    limi.push_back({e.l_, e.r_});
+    cnt += 2;
+  }
+  auto [success,useless] = MinCost(g.n_ + 1, edge);
+  double res =0;
+  for (int i = 0; i < f.size(); i += 2) {
+    int fl = (f[i] - f[i+1])/2;
+    auto q = [F(functions[i / 2]), li(limi[i / 2])](int x) {
+      auto Count = [&](int w) { return F(w) - x * w; };
+      auto [l, r] = li;
+      while (l < r) {
+        int lmid = l + (r - l) / 3;
+        int rmid = r - (r - l) / 3;
+        if (Count(lmid) <= Count(rmid)) {
+          r = rmid - 1;
+        } else {
+          l = lmid + 1;
+        }
       }
-      //cout << edge[i].capacity << " " << ioflow[u] << endl;
-      if (ioflow[u] == 0) {
-        return;
-      }
-    }
-    assert(ioflow[u]>0);
-    Relabel(u);
-    st.push(u);
-    vis[u]=1;
-  };
-  while (!st.empty()) {
-    int u = st.top();
-    st.pop();
-    vis[u] = 0;
-    if(p[u]>3*N*epsilon){
-      return false;
-    }
-    //cout << "assimble:" << u << endl;
-    Modify(u);
+      double minval = std::min(Count(l), Count(r));
+      return minval;
+    };
+    cout<<fl<<" "<<q(fl)<<endl;
+    res+=q(fl);
   }
-  return true;
-}
-void AddEdge(int u, int v, int c, int p,int tot,int id) {
-  edge.push_back({head[u], v, c, p, tot,id});
-  len++;
-  head[u] = len;
+  return {success,res};
 }
 
-void Init(vector<InputEdge> arc) {
-  epsilon = 1;
-  flow = 0;
-  head.resize(N, -1);
-  init_ioflow.resize(N);
-  // ioflow.resize(N, 0);
-  len = -1;
-  for (auto e : arc) {
-    //cout<<e.u<<" "<<e.v<<" "<<e.cost<<" "<<e.capacity<<endl;
-    epsilon = max(epsilon, e.cost * 1.0);
-    total_cost += e.capacity * e.cost;
-    init_ioflow[e.v] += e.upper;
-    init_ioflow[e.u] += -e.lower;
-    // ioflow[e.v] -= e.capacity;
-    AddEdge(e.u, e.v, e.cost, e.capacity,e.capacity,-1);
-    AddEdge(e.v, e.u, -e.cost, 0,e.capacity,e.id);
-  }
-  p.resize(N, 0);
-  // cout<<"init_flow:"<<endl;
-  // for(auto x:init_ioflow){
-  //   cout<<x<<" ";
+int main(int argc, char** argv) {
+  int cas = 0;
+  Graph g;
+  // for(int i=1;i<=2;i++){
+  //   rnd.setSeed(i);
   // }
-  // cout<<endl;
-  // for(int i=0;i<edge.size();i++){
-  //   assert(-edge[i].cost==edge[i^1].cost);
-  // }
-  // cout<<"edges:"<<endl;
-  // for(auto e:edge){
-  //   cout<<e.u<<" "<<e.v<<" "<<e.cost<<" "<<e.capacity<<endl;
-  // }
-}
-
-pair<bool,int> MinCost(int n, vector<InputEdge> arc) {
-  N = n;
-  Init(arc);
-  while (epsilon * N >= 1.0) {
-    //cout << epsilon << endl;
-    if(Refine()==false){
-      return {false,0};
+  for (int i = 1; i <= 5; i++) {
+    // g=TinyGen(4,6,atoi(argv[1]));
+    // g=TinyGen(3,3,i+114514);
+    // g=TinyGen(3,3,i+998244353);
+    g = TinyGen(2, 1, i);
+    printf("Test %d:\n", i);
+    printf("n = %d, m = %d\n", g.n_, g.m_);
+    for (int i = 1; i <= g.n_; i++) {
+      printf("node %d : l = %d , u = %d , funtion = ", i, g.node_[i].l_,
+             g.node_[i].r_);
+      PrintFunction(i - 1);
+      puts("");
     }
-    epsilon = epsilon / 2;
-  }
-  //total_cost = 0;
-  //cout<<(int)total_cost<<endl;
-  for (auto e : edge) {
-    // if (e.cost <= 0)
-    //   continue;
-    // cout << e.capacity << " " << e.cost << endl;
-    total_cost -= e.capacity * e.cost;
-  }
-  return {true,-total_cost / 2};
-}
-vector<InputEdge> e;
-signed main(){
-  int n,m,s,t;
-  scanf("%lld%lld",&n,&m);
-  f.resize(m);
-  for(int i=1;i<=m;i++)
-  {
-    int u,v,l,r,c,w;
-    scanf("%lld%lld%lld%lld",&u,&v,&l,&r);
-    u--;
-    v--;
-    e.push_back({u,v,0,r-l,l,r,i-1});
-    f[i-1]=l;
-  }
-  //e.push_back({t-1,s-1,-1,(int)1e18});
-  auto [yn,ans]=MinCost(n,e);
-  if(yn==false){
-    cout<<"NO\n";
-  }
-  else{
-    cout<<"YES\n";
-    for(auto e:edge){
-      if(e.id!=-1){
-        f[e.id]+=e.capacity;
-      }    
+    for (int i = 0; i < g.m_; i++) {
+      printf("edge %d : from = %d, to = %d , l = %d , u = %d , function = ",
+             i + 1, g.edge_[i].u_, g.edge_[i].v_, g.edge_[i].l_, g.edge_[i].r_);
+      PrintFunction(g.n_ + i);
+      puts("");
     }
-    for(auto x:f){
-      cout<<x<<"\n";
-    }
+    auto [success, ans] = SolveByCS(g);
+    cout << success<<" "<<(long long)ans << endl;
+    double res = SolveByBF(g);
+    cout << res << endl;
   }
   return 0;
 }
-#undef int
-

@@ -1,2 +1,8 @@
 .vscode/
 build
+AHO-MS2003/
+run.sh
+test.sh
+test/min25_test.cpp
+test/problem_part_test.cpp
+testa/
