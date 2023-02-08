@@ -133,7 +133,7 @@ pair<bool, double> SolveByCS(Graph g) {
   for (auto e : g.edge_) {    
     std::function<double(int)> E;
     E = [e](int x) {
-      int l = e.l_, r = e.r_;
+      int l = std::max(e.l_,x), r = e.r_;
       while (l < r) {
         int lmid = l + (r - l) / 3;
         int rmid = r - (r - l) / 3;
@@ -144,7 +144,7 @@ pair<bool, double> SolveByCS(Graph g) {
         }
       }
       double minval = std::min(e.F_(l), e.F_(r));
-      return std::max(minval,e.F_(x));
+      return minval;
     };
     e.F_=E;
     for (int i = e.l_; i <= e.r_; i++) {
