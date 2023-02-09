@@ -213,7 +213,7 @@ int main(int argc, char** argv) {
   // for(int i=1;i<=2;i++){
   //   rnd.setSeed(i);
   // }
-  for (int i = 1; i <= 3; i++) {
+  for (int i = 1; i <= 10; i++) {
     // g=TinyGen(4,6,atoi(argv[1]));
     // g=TinyGen(3,3,i+114514);
     // g=TinyGen(3,3,i+998244353);
