@@ -120,11 +120,23 @@ pair<bool, double> SolveByCS(Graph g) {
   for (int i = 1; i <= g.n_; i++) {
     auto e = g.node_[i];
     for (int j = e.l_; j <= e.r_; j++) {
-      double w = bij(e.F_, e.l_, e.r_, j) - bij(e.F_, e.l_, e.r_, j - 1);
-      assert(w >= 0);
-      edge.push_back({i, 0, j, w, 0, w, cnt});
-      if(w>1e5)
-        edge.push_back({0, i, -j, M, 0, M, cnt + 1});
+      // double w = bij(e.F_, e.l_, e.r_, j) - bij(e.F_, e.l_, e.r_, j - 1);
+      // assert(w >= 0);
+      // edge.push_back({i, 0, j, w, 0, w, cnt});
+      // if(w>1e5)
+      //   edge.push_back({0, i, -j, M, 0, M, cnt + 1});
+      double lower=bij(e.F_,e.l_,e.r_,j-1);
+      double upper=bij(e.F_,e.l_,e.r_,j);
+      if(lower>=0){
+        edge.push_back({i,0,j,upper-lower,0,upper-lower,0});
+      }
+      else if(upper<=0){
+        edge.push_back({0,i,-j,upper-lower,0,upper-lower,0});
+      }
+      else{
+        edge.push_back({i,0,j,upper,0,upper,0});
+        edge.push_back({0,i,-j,-lower,0,-lower,0});
+      }
     }
     cnt += 2;
     functions.push_back(e.F_);
@@ -148,40 +160,70 @@ pair<bool, double> SolveByCS(Graph g) {
     };
     e.F_=E;
     e.l_=g.node_[e.u_].l_-g.node_[e.v_].r_;
-    for (int i = e.l_; i <= e.r_; i++) {
-      double w = bij(e.F_, e.l_, e.r_, i) - bij(e.F_, e.l_, e.r_, i - 1);
-      assert(w >= 0);
-      edge.push_back({e.u_, e.v_, i, w, 0, w, cnt});
-      if(w>1e5)
-        edge.push_back({e.v_, e.u_, -i, M, 0, M, cnt + 1});
-    } 
+    // for (int i = e.l_; i <= e.r_; i++) {
+    //   double w = bij(e.F_, e.l_, e.r_, i) - bij(e.F_, e.l_, e.r_, i - 1);
+    //   assert(w >= 0);
+    //   edge.push_back({e.u_, e.v_, i, w, 0, w, cnt});
+    //   if(w>1e5)
+    //     edge.push_back({e.v_, e.u_, -i, M, 0, M, cnt + 1});
+    // } 
+    for(int i=e.l_;i<=e.r_;i++){
+      double lower=bij(e.F_,e.l_,e.r_,i-1);
+      double upper=bij(e.F_,e.l_,e.r_,i);
+      if(lower>=0){
+        edge.push_back({e.u_,e.v_,i,upper-lower,0,upper-lower,0});
+      }
+      else if(upper<=0){
+        edge.push_back({e.v_,e.u_,-i,upper-lower,0,upper-lower,0});
+      }
+      else{
+        edge.push_back({e.u_,e.v_,i,upper,0,upper,0});
+        edge.push_back({e.v_,e.u_,-i,-lower,0,-lower,0});
+      } 
+    }
     functions.push_back(E);
     limi.push_back({e.l_, e.r_});
     cnt += 2;
   }
   auto [success,useless] = MinCost(g.n_ + 1, edge);
-  double res =0;
-  for (int i = 0; i < f.size(); i += 2) {
-    int fl = f[i] - f[i+1];
-    auto q = [F(functions[i / 2]), li(limi[i / 2])](int x) {
-      auto Count = [&](int w) { return F(w) - x * w; };
-      auto [l, r] = li;
+  // double res =0;
+  // for (int i = 0; i < f.size(); i += 2) {
+  //   int fl = f[i] - f[i+1];
+  //   auto q = [F(functions[i / 2]), li(limi[i / 2])](int x) {
+  //     auto Count = [&](int w) { return F(w) - x * w; };
+  //     auto [l, r] = li;
+  //     while (l < r) {
+  //       int lmid = l + (r - l) / 3;
+  //       int rmid = r - (r - l) / 3;
+  //       if (Count(lmid) <= Count(rmid)) {
+  //         r = rmid - 1;
+  //       } else {
+  //         l = lmid + 1;
+  //       }
+  //     }
+  //     double minval = std::min(Count(l), Count(r));
+  //     return minval;
+  //   };
+  //   cout<<fl<<" "<<q(fl)<<endl;
+  //   res+=q(fl);
+  // }
+  for(int i=0;i<functions.size();i++){
+    auto FunctionMin = [](function<double(int)>f,int l,int r){
       while (l < r) {
         int lmid = l + (r - l) / 3;
         int rmid = r - (r - l) / 3;
-        if (Count(lmid) <= Count(rmid)) {
+        if (f(lmid) <= f(rmid)) {
           r = rmid - 1;
         } else {
           l = lmid + 1;
         }
       }
-      double minval = std::min(Count(l), Count(r));
+      double minval = std::min(f(l), f(r));
       return minval;
     };
-    cout<<fl<<" "<<q(fl)<<endl;
-    res+=q(fl);
+    useless+=FunctionMin(functions[i],limi[i].first,limi[i].second);
   }
-  return {success,res};
+  return {success,useless};
 }
 
 int main(int argc, char** argv) {
@@ -190,11 +232,11 @@ int main(int argc, char** argv) {
   // for(int i=1;i<=2;i++){
   //   rnd.setSeed(i);
   // }
-  for (int i = 1; i <= 5; i++) {
+  for (int i = 1; i <= 3; i++) {
     // g=TinyGen(4,6,atoi(argv[1]));
     // g=TinyGen(3,3,i+114514);
     // g=TinyGen(3,3,i+998244353);
-    g = TinyGen(2, 1, i);
+    g = TinyGen(10,20, i+1);
     printf("Test %d:\n", i);
     printf("n = %d, m = %d\n", g.n_, g.m_);
     for (int i = 1; i <= g.n_; i++) {
@@ -211,8 +253,8 @@ int main(int argc, char** argv) {
     }
     auto [success, ans] = SolveByCS(g);
     cout << success<<" "<<(long long)ans << endl;
-    double res = SolveByBF(g);
-    cout << res << endl;
+    //double res = SolveByBF(g);
+    //cout << res << endl;
   }
   return 0;
 }

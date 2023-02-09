@@ -93,9 +93,9 @@ bool Refine() {
     int u = st.top();
     st.pop();
     vis[u] = 0;
-    if(p[u]>3*N*epsilon){
-      return false;
-    }
+    // if(p[u]>3*N*epsilon){
+    //   return false;
+    // }
     Modify(u);
   }
   return true;

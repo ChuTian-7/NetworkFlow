@@ -188,7 +188,7 @@ int main(int argc , char** argv){
     // g=TinyGen(4,6,atoi(argv[1])); 
     // g=TinyGen(3,3,i+114514);
     // g=TinyGen(3,3,i+998244353);
-    g = TinyGen(2, 1, i+1);
+    g = TinyGen(10, 20, i);
     printf("Test %d:\n",i);   
     printf("n = %d, m = %d\n",g.n_,g.m_);
     for(int i=1;i<=g.n_;i++){
@@ -202,10 +202,10 @@ int main(int argc , char** argv){
       puts("");
     }
     PrintCase(g);
-    double ans=SolveByBF(g);
-    printf("answer = %lf\n",ans);
-    double res=SolveByCS(g);
-    printf("result = %lf\n",res);
+    //double ans=SolveByBF(g);
+    //printf("answer = %lf\n",ans);
+    //double res=SolveByCS(g);
+    //printf("result = %lf\n",res);
   }
   return 0;
 }
