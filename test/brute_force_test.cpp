@@ -178,7 +178,7 @@ double SolveByCS(Graph g){
     ωs.push_back({{x.l_,x.r_,x.F_},(size_t)x.u_,(size_t)x.v_});
   }
   ProblemSolver p(g.n_,μs,ωs);
-  return p.solve();
+  return *p.solve();
 }
 
 int main(int argc , char** argv){

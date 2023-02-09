@@ -4,6 +4,7 @@
 #include "cost_scaling.hpp"
 #include "gen.h"
 #include "testlib.h"
+#include "ProblemSolver.hpp"
 using namespace std;
 
 struct Fun {
@@ -55,6 +56,19 @@ double SolveByBF(Graph g) {
   return answer;
 }
 
+double SolveByLY(Graph g){
+  std::vector<μLimit> μs;
+	std::vector<ωLimit> ωs;
+  for(auto x:g.node_){
+    μs.push_back({x.l_,x.r_,x.F_});
+  }
+  for(auto x:g.edge_){
+    ωs.push_back({{x.l_,x.r_,x.F_},(size_t)x.u_,(size_t)x.v_});
+  }
+  ProblemSolver p(g.n_,μs,ωs);
+  return *p.solve();
+}
+
 Graph TinyGen(int n, int ml, int x = 0) {
   fun.clear();
   int m = rnd.next(n - 1, ml);
@@ -72,8 +86,8 @@ Graph TinyGen(int n, int ml, int x = 0) {
   nxt.node_.resize(n + 1);
   nxt.edge_.resize(m);
   for (int i = 1; i <= n; i++) {
-    nxt.node_[i].l_ = rnd.next(-5, 5);
-    nxt.node_[i].r_ = rnd.next(-5, 5);
+    nxt.node_[i].l_ = rnd.next(-10, 5);
+    nxt.node_[i].r_ = rnd.next(-10, 5);
     if (nxt.node_[i].l_ > nxt.node_[i].r_) {
       std::swap(nxt.node_[i].l_, nxt.node_[i].r_);
     }
@@ -81,8 +95,8 @@ Graph TinyGen(int n, int ml, int x = 0) {
   }
   std::map<std::pair<int, int>, int> mp;
   for (int i = 0; i < m; i++) {
-    nxt.edge_[i].l_ = rnd.next(-5, 5);
-    nxt.edge_[i].r_ = rnd.next(-5, 5);
+    nxt.edge_[i].l_ = rnd.next(10, 20);
+    nxt.edge_[i].r_ = rnd.next(10, 20);
     if (nxt.edge_[i].l_ > nxt.edge_[i].r_) {
       std::swap(nxt.edge_[i].l_, nxt.edge_[i].r_);
     }
@@ -100,7 +114,7 @@ Graph TinyGen(int n, int ml, int x = 0) {
 }
 
 double bij(function<double(int)> f, int l, int r, int x) {
-  double M = 1e6;
+  double M = 1e9;
   if (x < l) {
     return -M;
   }
@@ -114,17 +128,12 @@ double bij(function<double(int)> f, int l, int r, int x) {
 pair<bool, double> SolveByCS(Graph g) {
   vector<function<double(int)>> functions;
   vector<pair<int, int>> limi;
-  double M = 1e6;
+  double M = 1e9;
   int cnt = 0;
   vector<InputEdge> edge;
   for (int i = 1; i <= g.n_; i++) {
     auto e = g.node_[i];
     for (int j = e.l_; j <= e.r_; j++) {
-      // double w = bij(e.F_, e.l_, e.r_, j) - bij(e.F_, e.l_, e.r_, j - 1);
-      // assert(w >= 0);
-      // edge.push_back({i, 0, j, w, 0, w, cnt});
-      // if(w>1e5)
-      //   edge.push_back({0, i, -j, M, 0, M, cnt + 1});
       double lower=bij(e.F_,e.l_,e.r_,j-1);
       double upper=bij(e.F_,e.l_,e.r_,j);
       if(lower>=0){
@@ -160,13 +169,6 @@ pair<bool, double> SolveByCS(Graph g) {
     };
     e.F_=E;
     e.l_=g.node_[e.u_].l_-g.node_[e.v_].r_;
-    // for (int i = e.l_; i <= e.r_; i++) {
-    //   double w = bij(e.F_, e.l_, e.r_, i) - bij(e.F_, e.l_, e.r_, i - 1);
-    //   assert(w >= 0);
-    //   edge.push_back({e.u_, e.v_, i, w, 0, w, cnt});
-    //   if(w>1e5)
-    //     edge.push_back({e.v_, e.u_, -i, M, 0, M, cnt + 1});
-    // } 
     for(int i=e.l_;i<=e.r_;i++){
       double lower=bij(e.F_,e.l_,e.r_,i-1);
       double upper=bij(e.F_,e.l_,e.r_,i);
@@ -186,27 +188,6 @@ pair<bool, double> SolveByCS(Graph g) {
     cnt += 2;
   }
   auto [success,useless] = MinCost(g.n_ + 1, edge);
-  // double res =0;
-  // for (int i = 0; i < f.size(); i += 2) {
-  //   int fl = f[i] - f[i+1];
-  //   auto q = [F(functions[i / 2]), li(limi[i / 2])](int x) {
-  //     auto Count = [&](int w) { return F(w) - x * w; };
-  //     auto [l, r] = li;
-  //     while (l < r) {
-  //       int lmid = l + (r - l) / 3;
-  //       int rmid = r - (r - l) / 3;
-  //       if (Count(lmid) <= Count(rmid)) {
-  //         r = rmid - 1;
-  //       } else {
-  //         l = lmid + 1;
-  //       }
-  //     }
-  //     double minval = std::min(Count(l), Count(r));
-  //     return minval;
-  //   };
-  //   cout<<fl<<" "<<q(fl)<<endl;
-  //   res+=q(fl);
-  // }
   for(int i=0;i<functions.size();i++){
     auto FunctionMin = [](function<double(int)>f,int l,int r){
       while (l < r) {
@@ -236,23 +217,25 @@ int main(int argc, char** argv) {
     // g=TinyGen(4,6,atoi(argv[1]));
     // g=TinyGen(3,3,i+114514);
     // g=TinyGen(3,3,i+998244353);
-    g = TinyGen(10,20, i+1);
-    printf("Test %d:\n", i);
-    printf("n = %d, m = %d\n", g.n_, g.m_);
-    for (int i = 1; i <= g.n_; i++) {
-      printf("node %d : l = %d , u = %d , funtion = ", i, g.node_[i].l_,
-             g.node_[i].r_);
-      PrintFunction(i - 1);
-      puts("");
-    }
-    for (int i = 0; i < g.m_; i++) {
-      printf("edge %d : from = %d, to = %d , l = %d , u = %d , function = ",
-             i + 1, g.edge_[i].u_, g.edge_[i].v_, g.edge_[i].l_, g.edge_[i].r_);
-      PrintFunction(g.n_ + i);
-      puts("");
-    }
+    g = TinyGen(100,200, i);
+    // printf("Test %d:\n", i);
+    // printf("n = %d, m = %d\n", g.n_, g.m_);
+    // for (int i = 1; i <= g.n_; i++) {
+    //   printf("node %d : l = %d , u = %d , funtion = ", i, g.node_[i].l_,
+    //          g.node_[i].r_);
+    //   PrintFunction(i - 1);
+    //   puts("");
+    // }
+    // for (int i = 0; i < g.m_; i++) {
+    //   printf("edge %d : from = %d, to = %d , l = %d , u = %d , function = ",
+    //          i + 1, g.edge_[i].u_, g.edge_[i].v_, g.edge_[i].l_, g.edge_[i].r_);
+    //   PrintFunction(g.n_ + i);
+    //   puts("");
+    // }
     auto [success, ans] = SolveByCS(g);
     cout << success<<" "<<(long long)ans << endl;
+    double res = SolveByLY(g);
+    cout<<res<<endl;
     //double res = SolveByBF(g);
     //cout << res << endl;
   }
