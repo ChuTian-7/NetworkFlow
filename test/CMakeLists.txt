@@ -13,3 +13,8 @@ TARGET_INCLUDE_DIRECTORIES(costscalingTest PUBLIC ../AHO-MS2003/src)
 # min25 test
 ADD_EXECUTABLE(min25Test min25_test.cpp)
 ADD_TEST(NAME min25Test COMMAND min25Test)
+
+# lemon test
+ADD_EXECUTABLE(lemonTest lemon_test.cpp)
+ADD_TEST(NAME lemonTest COMMAND lemonTest)
+TARGET_INCLUDE_DIRECTORIES(lemonTest PUBLIC /usr/local/share/lemon)

@@ -210,34 +210,43 @@ pair<bool, double> SolveByCS(Graph g) {
 int main(int argc, char** argv) {
   int cas = 0;
   Graph g;
-  // for(int i=1;i<=2;i++){
+  // for(int i=1;i<=34;i++){
   //   rnd.setSeed(i);
   // }
-  for (int i = 1; i <= 10; i++) {
+  for (int i = 1; i <= 1000; i++) {
     // g=TinyGen(4,6,atoi(argv[1]));
     // g=TinyGen(3,3,i+114514);
-    // g=TinyGen(3,3,i+998244353);
-    g = TinyGen(100,200, i);
-    // printf("Test %d:\n", i);
-    // printf("n = %d, m = %d\n", g.n_, g.m_);
-    // for (int i = 1; i <= g.n_; i++) {
-    //   printf("node %d : l = %d , u = %d , funtion = ", i, g.node_[i].l_,
-    //          g.node_[i].r_);
-    //   PrintFunction(i - 1);
-    //   puts("");
-    // }
-    // for (int i = 0; i < g.m_; i++) {
-    //   printf("edge %d : from = %d, to = %d , l = %d , u = %d , function = ",
-    //          i + 1, g.edge_[i].u_, g.edge_[i].v_, g.edge_[i].l_, g.edge_[i].r_);
-    //   PrintFunction(g.n_ + i);
-    //   puts("");
-    // }
+    // g=TinyGen(3,3,i+998244353);   
+    g = TinyGen(4,6, i);
+    if(i!=746)  continue;;
+    printf("Test %d:\n", i);
+    printf("n = %d, m = %d\n", g.n_, g.m_);
+    for (int i = 1; i <= g.n_; i++) {
+      printf("node %d : l = %d , u = %d , funtion = ", i, g.node_[i].l_,
+             g.node_[i].r_);
+      PrintFunction(i - 1);
+      puts("");
+    }
+    for (int i = 0; i < g.m_; i++) {
+      printf("edge %d : from = %d, to = %d , l = %d , u = %d , function = ",
+             i + 1, g.edge_[i].u_, g.edge_[i].v_, g.edge_[i].l_, g.edge_[i].r_);
+      PrintFunction(g.n_ + i);
+      puts("");
+    }
+    PrintCase(g);
     auto [success, ans] = SolveByCS(g);
-    cout << success<<" "<<(long long)ans << endl;
+    //cout << success<<" "<<(long long)ans << endl;
     double res = SolveByLY(g);
-    cout<<res<<endl;
-    //double res = SolveByBF(g);
-    //cout << res << endl;
+    //cout<<res<<endl;
+    if(ans==res){
+      //cout<<"Pass Test "<<i<<endl;
+    }
+    else{
+      cout<<"NOT PASS Test "<<i<<":"<<(long long)ans<<" "<<res<<endl;
+    }
+    cout<<"Solve by brute force:"<<endl;
+    double bf=SolveByBF(g);
+    cout<<bf<<endl;
   }
   return 0;
 }
