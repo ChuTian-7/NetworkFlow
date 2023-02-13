@@ -6,7 +6,7 @@ TARGET_INCLUDE_DIRECTORIES(bruteforceTest PUBLIC ../AHO-MS2003/src ../AHO-MS2003
 
 # cost scaling test
 ADD_EXECUTABLE(costscalingTest cost_scaling_test.cpp)
-TARGET_LINK_LIBRARIES(costscalingTest cost_scaling_src brute_force_src testa aho_ms2003)
+TARGET_LINK_LIBRARIES(costscalingTest brute_force_src testa aho_ms2003 problem_src generator_src)
 ADD_TEST(NAME costscalingTest COMMAND costscalingTest)
 TARGET_INCLUDE_DIRECTORIES(costscalingTest PUBLIC ../AHO-MS2003/src ../AHO-MS2003/src/include)
 
@@ -14,7 +14,4 @@ TARGET_INCLUDE_DIRECTORIES(costscalingTest PUBLIC ../AHO-MS2003/src ../AHO-MS200
 ADD_EXECUTABLE(min25Test min25_test.cpp)
 ADD_TEST(NAME min25Test COMMAND min25Test)
 
-# lemon test
-ADD_EXECUTABLE(lemonTest lemon_test.cpp)
-ADD_TEST(NAME lemonTest COMMAND lemonTest)
-TARGET_INCLUDE_DIRECTORIES(lemonTest PUBLIC /usr/local/share/lemon)
+

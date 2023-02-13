@@ -4,7 +4,6 @@
 #include <vector>
 #include <assert.h>
 
-using namespace std;
 #define int long long
 double epsilon, flow;
 
@@ -20,12 +19,9 @@ struct Arc {
   int id;
 };
 
-vector<double> p;  // potential
-vector<int> head;
-vector<double> f;
-
-vector<Arc> edge;
-// vector<double> init_excess;  //excess
+std::vector<double> p;  // potential
+std::vector<int> head;
+std::vector<Arc> edge;
 int N, len,side;
 double total_cost = 0;
 
@@ -34,8 +30,8 @@ double CostPi(int u, Arc e) {
 }
 
 bool Refine() {
-  vector<double> excess(N);
-  vector<double> incp(N,0);
+  std::vector<double> excess(N);
+  std::vector<double> incp(N,0);
   for (int u = 0; u < N; u++) {
     for (int i = head[u]; i != -1; i = edge[i].u) {
       if (CostPi(u, edge[i]) < 0) {
@@ -46,8 +42,8 @@ bool Refine() {
       }
     }
   }
-  vector<bool> vis(N, 0);
-  stack<int> st;
+  std::vector<bool> vis(N, 0);
+  std::stack<int> st;
   for (int u = 0; u < N; u++) {
     if (excess[u] > 0) {
       st.push(u);
@@ -79,7 +75,7 @@ bool Refine() {
     for (int i = head[u]; i != -1; i = edge[i].u) {
       double w=CostPi(u,edge[i]);
       if(w<0){
-        Push(u, i, min(edge[i].capacity, excess[u]));  
+        Push(u, i, std::min(edge[i].capacity, excess[u])); 
       }
       if (excess[u] == 0) {
         return;
@@ -107,33 +103,25 @@ void AddEdge(int u, int v, int c, double p,double tot,int id) {
   head[u] = len;
 }
 
-void Init(vector<InputEdge> arc) {
+void Init(std::vector<InputEdge> arc) {
   edge.clear();
   head.clear();
-  //init_excess.clear();
   p.clear();
-  f.clear();
   total_cost=0;
   epsilon = 1;
   flow = 0;
   head.resize(N, -1);
-  //init_excess.resize(N,0);
-  int cnt=0;
   len = -1;
   for (auto e : arc) {
-    epsilon = max(epsilon, e.cost * 1.0);
+    epsilon = std::max(epsilon, e.cost * 1.0);
     total_cost += e.capacity * e.cost;
-    // init_excess[e.v] += e.upper;
-    // init_excess[e.u] += -e.lower;
     AddEdge(e.u, e.v, e.cost, e.capacity,e.capacity,-1);
     AddEdge(e.v, e.u, -e.cost, 0,e.capacity,e.id);
-    cnt=max(cnt,e.id);
   }
   p.resize(N, 0);
-  f.resize(cnt+1,0);
 }
 
-pair<bool,int> MinCost(int n, vector<InputEdge> arc) {
+std::pair<bool,double> MinCost(int n, std::vector<InputEdge> arc) {
   N = n;
   side=arc.size();
   Init(arc);
@@ -144,9 +132,6 @@ pair<bool,int> MinCost(int n, vector<InputEdge> arc) {
     epsilon = epsilon / 2;
   }
   for (auto e : edge) {
-    if(e.id!=-1){
-      f[e.id]+=e.capacity;
-    }
     total_cost -= e.capacity * e.cost;
   }
   return {true,-total_cost / 2};

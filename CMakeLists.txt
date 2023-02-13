@@ -14,4 +14,3 @@ ADD_SUBDIRECTORY(testa/cpp)
 
 ADD_SUBDIRECTORY(AHO-MS2003)
 
-# ADD_SUBDIRECTORY(/home/yuhan/Downloads/lemon)
