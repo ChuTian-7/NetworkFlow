@@ -14,4 +14,7 @@ TARGET_INCLUDE_DIRECTORIES(costscalingTest PUBLIC ../AHO-MS2003/src ../AHO-MS200
 ADD_EXECUTABLE(min25Test min25_test.cpp)
 ADD_TEST(NAME min25Test COMMAND min25Test)
 
-
+#testa test
+add_executable(testaTest testa_test.cpp)
+TARGET_LINK_LIBRARIES(testaTest testa brute_force_src testa aho_ms2003 problem_src generator_src)
+target_include_directories(testaTest PUBLIC ../include ../testa/cpp ../AHO-MS2003/src ../AHO-MS2003/src/include)

@@ -1,12 +1,12 @@
 #include"problem.hpp"
 #include"cost_scaling.hpp"
 
+
 Problem::Problem(Graph g){
   G=g;
 }
 
 double Problem::bij(std::function<double(int)> f, int l, int r, int x) {
-  double M = 1e9;
   if (x < l) {
     return -M;
   }
@@ -19,7 +19,6 @@ double Problem::bij(std::function<double(int)> f, int l, int r, int x) {
 double Problem::Solve() {
   std::vector<std::function<double(int)>> functions;
   std::vector<std::pair<int, int>> limi;
-  double M = 1e9;
   std::vector<InputEdge> edge;
   double mx=0;
   for (int i = 1; i <= G.n_; i++) {
@@ -84,7 +83,8 @@ double Problem::Solve() {
     functions.push_back(E);
     limi.push_back({e.l_, e.r_});
   }
-  auto [success,res] = MinCost(G.n_ + 1, edge);
+  CostScaling cs;
+  auto [success,res] = cs.MinCost(G.n_ + 1, edge);
   for(int i=0;i<functions.size();i++){
     auto FunctionMin = [](std::function<double(int)>f,int l,int r){
       while (l < r) {

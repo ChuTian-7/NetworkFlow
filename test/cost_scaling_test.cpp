@@ -12,10 +12,6 @@ double SolveByBF(Graph g) {
   bf.ChangeGraph(g);
   std::vector<int> value;
   double answer = bf.Solve(value);
-  // for (auto x : value) {
-  //   cout << x << " ";
-  // }
-  // cout << endl;
   if (answer == 1e9) {
     answer = nan("");
   }

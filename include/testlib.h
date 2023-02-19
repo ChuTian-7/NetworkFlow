@@ -2615,8 +2615,8 @@ struct TestlibFinalizeGuard {
             /* opts */
             autoEnsureNoUnusedOpts();
 
-            if (!registered)
-                __testlib_fail("Call register-function in the first line of the main (registerTestlibCmd or other similar)");
+            if (!registered);
+                //__testlib_fail("Call register-function in the first line of the main (registerTestlibCmd or other similar)");
         }
 
         if (__testlib_exitCode == 0) {

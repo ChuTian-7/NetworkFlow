@@ -18,28 +18,30 @@ std::function<double(int)> RandF(std::pair<int,int> fun_limit) {
   return [a, b, c](int x) { return a * x * x + b * x + c; };
 }
 
-void PrintFunction(int x) {
-  printf(" ( %d ) * x * x + ( %d ) * x + ( %d )", fun[x].a, fun[x].b, fun[x].c);
+void PrintFunction(char * buf,int x) {
+  sprintf(buf," ( %d ) * x * x + ( %d ) * x + ( %d )", fun[x].a, fun[x].b, fun[x].c);
 }
 
-void PrintCase(Graph G) {
-  printf("%d ,\n{\n", G.n_);
-  printf("  {0,0,[](int){ return 0;}},\n");
+std::string PrintCase(Graph& G) {
+  char buf[50000];
+  sprintf(buf,"%d ,\n{\n", G.n_);
+  sprintf(buf,"  {0,0,[](int){ return 0;}},\n");
   for (int i = 1; i <= G.n_; i++) {
-    printf("  {%d,%d,[](int x){ return", G.node_[i].l_, G.node_[i].r_);
-    PrintFunction(i - 1);
-    printf(";}},\n");
+    sprintf(buf,"  {%d,%d,[](int x){ return", G.node_[i].l_, G.node_[i].r_);
+    PrintFunction(buf,i - 1);
+    sprintf(buf,";}},\n");
   }
-  printf("},\n{\n");
+  sprintf(buf,"},\n{\n");
   for (int i = 0; i < G.m_; i++) {
-    printf("  {{%d,%d,[](int x){ return", G.edge_[i].l_, G.edge_[i].r_);
-    PrintFunction(i + G.n_);
-    printf(";}},%d,%d},\n", G.edge_[i].u_, G.edge_[i].v_);
+    sprintf(buf,"  {{%d,%d,[](int x){ return", G.edge_[i].l_, G.edge_[i].r_);
+    PrintFunction(buf,i + G.n_);
+    sprintf(buf,";}},%d,%d},\n", G.edge_[i].u_, G.edge_[i].v_);
   }
-  printf("}\n");
+  sprintf(buf,"}\n");
+  return std::string(buf);
 }
 
-Graph TinyGen(int n, int mlimit, bool multi_edge,std::pair<int,int> node_limit,std::pair<int,int> edge_limit,std::pair<int,int> fun_limit,int seed = 0) {
+Graph TinyGen(int n, int mlimit, bool multi_edge,std::pair<int,int> node_limit,std::pair<int,int> edge_limit,std::pair<int,int> fun_limit,int seed) {
   fun.clear();
   if(!multi_edge){
     mlimit=std::min(mlimit,n*(n-1)/2);
@@ -84,5 +86,10 @@ Graph TinyGen(int n, int mlimit, bool multi_edge,std::pair<int,int> node_limit,s
     nxt.edge_[i].u_ = e[i].first + 1;
     nxt.edge_[i].v_ = e[i].second + 1;
   }
+  nxt.info=PrintCase(nxt);
   return nxt;
+}
+
+Graph TinyGen(int n, int mlimit, bool multi_edge,std::pair<int,int> node_limit,std::pair<int,int> edge_limit,std::pair<int,int> fun_limit){
+  return TinyGen(n,mlimit,multi_edge,node_limit,edge_limit,fun_limit,0);
 }

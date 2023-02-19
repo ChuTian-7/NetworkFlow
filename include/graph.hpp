@@ -2,7 +2,7 @@
 
 #include <queue>
 #include <functional>
-
+#include <string>
 class Node{
   public:
     int l_,r_;
@@ -27,6 +27,7 @@ class Graph{
     std::deque<Node> node_;
     std::deque<Edge> edge_;
     int U_;
+    std::string info;
     Graph(){};
     Graph(int n,int m,std::deque<Node>node,std::deque<Edge> edge);
 };
